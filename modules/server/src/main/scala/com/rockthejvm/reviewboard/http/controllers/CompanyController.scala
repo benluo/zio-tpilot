@@ -2,31 +2,26 @@ package com.rockthejvm.reviewboard.http.controllers
 
 import com.rockthejvm.reviewboard.domain.data.Company
 
-import collection.mutable
 import com.rockthejvm.reviewboard.http.endpoints.CompanyEndpoints
+import com.rockthejvm.reviewboard.services.CompanyService
 import sttp.tapir.server.ServerEndpoint
 import zio.*
 
 /** a controller that implements handling logic for company endpoints */
-class CompanyController private extends BaseController with CompanyEndpoints:
-  // in-memory "database"
-  private val db = mutable.Map.empty[Long, Company]
-
+class CompanyController private (service: CompanyService) extends BaseController with CompanyEndpoints:
   val create: ServerEndpoint[Any, Task] =
-    createEndpoint.serverLogicSuccess: req =>
-      ZIO.succeed:
-        val id = db.keys.maxOption.getOrElse(0L) + 1L
-        val company = req.toCompany(id)
-        db += (id -> company)
-        company
-
+    createEndpoint.serverLogicSuccess(service.create)
+    
   val getAll: ServerEndpoint[Any, Task] =
-    getAllEndpoint.serverLogicSuccess: _ =>
-      ZIO.succeed(db.values.toList)
+    getAllEndpoint.serverLogicSuccess(_ => service.getAll)
 
   val getById: ServerEndpoint[Any, Task] =
     getByIdEndpoint.serverLogicSuccess: id =>
-      ZIO.attempt(id.toLong).map(db.get)
+      ZIO
+        .attempt(id.toLong)
+        .flatMap(service.getById)
+        .catchSome:
+          case _: NumberFormatException => service.getBySlug(id)
 
   override val routes: List[ServerEndpoint[Any, Task]] =
     List(create, getAll, getById)
@@ -34,5 +29,6 @@ class CompanyController private extends BaseController with CompanyEndpoints:
 end CompanyController
 
 object CompanyController:
-  val makeZIO: UIO[CompanyController] =
-    ZIO.succeed(new CompanyController)
+  val makeZIO: URIO[CompanyService, CompanyController] =
+    ZIO.service[CompanyService]
+      .map(service => new CompanyController(service))
