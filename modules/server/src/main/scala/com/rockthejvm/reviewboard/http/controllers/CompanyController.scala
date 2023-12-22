@@ -10,14 +10,12 @@ import zio.*
 /** a controller that implements handling logic for company endpoints */
 class CompanyController private extends BaseController with CompanyEndpoints:
   // in-memory "database"
-  private val db = mutable.Map[Long, Company](
-    -1L -> Company(-1L, "invalid", "No company", "nothing.com")
-  )
+  private val db = mutable.Map.empty[Long, Company]
 
   val create: ServerEndpoint[Any, Task] =
     createEndpoint.serverLogicSuccess: req =>
       ZIO.succeed:
-        val id = db.keys.max + 1
+        val id = db.keys.maxOption.getOrElse(0L) + 1L
         val company = req.toCompany(id)
         db += (id -> company)
         company
