@@ -1,7 +1,8 @@
 package com.rockthejvm.reviewboard
 
 import com.rockthejvm.reviewboard.http.HttpApi
-import com.rockthejvm.reviewboard.services.CompanyService
+import com.rockthejvm.reviewboard.repositories.*
+import com.rockthejvm.reviewboard.services.*
 import sttp.tapir.*
 import sttp.tapir.server.ziohttp.*
 import zio.*
@@ -20,6 +21,11 @@ object Application extends ZIOAppDefault:
   override def run: Task[Unit] =
     serverProgram.provide(
       Server.default,
-      CompanyService.dummyLayer
+      // services
+      CompanyServiceLive.layer,
+      // repos
+      CompanyRepositoryLive.layer,
+      // other requirements
+      Repository.dataLayer
     )
 end Application
