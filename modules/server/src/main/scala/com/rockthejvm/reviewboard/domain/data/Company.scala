@@ -24,4 +24,3 @@ object Company:
       .split(" ")
       .map(_.toLowerCase)
       .mkString("-")
-end Company

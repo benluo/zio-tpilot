@@ -16,7 +16,6 @@ object HttpApi:
 
   private def makeControllers: RIO[CompanyService, List[BaseController]] =
     for
-      health <- HealthController.makeZIO
+      health    <- HealthController.makeZIO
       companies <- CompanyController.makeZIO
     yield List(health, companies)
-end HttpApi

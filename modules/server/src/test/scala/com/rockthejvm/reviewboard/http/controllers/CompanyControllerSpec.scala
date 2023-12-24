@@ -24,7 +24,7 @@ object CompanyControllerSpec extends ZIOSpecDefault:
             .post(uri"/companies")
             .body(CreateCompanyRequest("Rock the JVM", "rockthejvm.com").toJson)
 
-        testEndpoint(_.create)(req)
+        controller(_.create)(req)
           .assert("returns newly created company"): respBody =>
             respBody
               .toOption
@@ -32,7 +32,7 @@ object CompanyControllerSpec extends ZIOSpecDefault:
               .contains(rtjvm),
 
       test("get all company listings"):
-        testEndpoint(_.getAll)(basicRequest.get(uri"/companies"))
+        controller(_.getAll)(basicRequest.get(uri"/companies"))
           .assert("returns list of all companies"): respBody =>
             respBody
               .toOption
@@ -40,7 +40,7 @@ object CompanyControllerSpec extends ZIOSpecDefault:
               .contains(List(rtjvm)),
 
       test("get a company by id - bad id"):
-        testEndpoint(_.getById)(basicRequest.get(uri"/companies/10"))
+        controller(_.getById)(basicRequest.get(uri"/companies/10"))
           .assert("returns None if no such company exists"): respBody =>
             respBody
               .toOption
@@ -48,7 +48,7 @@ object CompanyControllerSpec extends ZIOSpecDefault:
               .isEmpty,
 
       test("get a company by id - good id"):
-        testEndpoint(_.getById)(basicRequest.get(uri"/companies/1"))
+        controller(_.getById)(basicRequest.get(uri"/companies/1"))
           .assert("returns company if exists"): respBody =>
             respBody
               .toOption
@@ -56,7 +56,7 @@ object CompanyControllerSpec extends ZIOSpecDefault:
               .contains(rtjvm),
 
       test("get a company by slug - bad slug"):
-        testEndpoint(_.getById)(basicRequest.get(uri"/companies/bogus"))
+        controller(_.getById)(basicRequest.get(uri"/companies/bogus"))
           .assert("returns None if no such company exists"): respBody =>
             respBody
               .toOption
@@ -64,14 +64,14 @@ object CompanyControllerSpec extends ZIOSpecDefault:
               .isEmpty,
 
       test("get a company by slug - good slug"):
-        testEndpoint(_.getById)(basicRequest.get(uri"/companies/rock-the-jvm"))
+        controller(_.getById)(basicRequest.get(uri"/companies/rock-the-jvm"))
           .assert("returns None if no such company exists"): respBody =>
             respBody
               .toOption
               .flatMap(_.fromJson[Company].toOption)
               .contains(rtjvm),
 
-    ).provide(ZLayer.succeed(serviceStub))
+    ).provide(serviceStub)
   end spec
 
   private given zioMonadError: MonadError[Task] =
@@ -79,15 +79,17 @@ object CompanyControllerSpec extends ZIOSpecDefault:
 
   private val rtjvm = Company(1L, "rock-the-jvm", "Rock the JVM", "rockthejvm.com")
 
-  private val serviceStub = new CompanyService:
-    override def create(req: CreateCompanyRequest): Task[Company] =
-      ZIO.succeed(rtjvm)
-    override def getAll: Task[List[Company]] =
-      ZIO.succeed(List(rtjvm))
-    override def getById(id: Long): Task[Option[Company]] =
-      ZIO.succeed(Option.when(id == rtjvm.id)(rtjvm))
-    override def getBySlug(slug: String): Task[Option[Company]] =
-      ZIO.succeed(Option.when(slug == rtjvm.slug)(rtjvm))
+  private val serviceStub =
+    ZLayer.succeed:
+      new CompanyService:
+        override def create(req: CreateCompanyRequest): Task[Company] =
+          ZIO.succeed(rtjvm)
+        override def getAll: Task[List[Company]] =
+          ZIO.succeed(List(rtjvm))
+        override def getById(id: Long): Task[Option[Company]] =
+          ZIO.succeed(Option.when(id == rtjvm.id)(rtjvm))
+        override def getBySlug(slug: String): Task[Option[Company]] =
+          ZIO.succeed(Option.when(slug == rtjvm.slug)(rtjvm))
   end serviceStub
 
   private type ED = CompanyController => ServerEndpoint[Any, Task]
@@ -101,7 +103,7 @@ object CompanyControllerSpec extends ZIOSpecDefault:
 
 
   private type Req = Request[Either[String, String], Any]
-  private def testEndpoint(f: ED)(req: Req): RIO[CompanyService, Either[String, String]] =
+  private def controller(f: ED)(req: Req): RIO[CompanyService, Either[String, String]] =
     for
       backendStub <- backendStubZIO(f)
       response <- req.send(backendStub)

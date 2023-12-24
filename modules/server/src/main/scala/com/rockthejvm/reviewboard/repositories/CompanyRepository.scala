@@ -18,9 +18,12 @@ trait CompanyRepository:
 class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends CompanyRepository:
   import quill.*
 
-  inline given schema: SchemaMeta[Company] = schemaMeta[Company]("companies")
-  inline given insMeta: InsertMeta[Company] = insertMeta[Company](_.id)
-  inline given upMeta: UpdateMeta[Company] = updateMeta[Company](_.id)
+  inline given schema: SchemaMeta[Company] =
+    schemaMeta[Company]("companies")
+  inline given insMeta: InsertMeta[Company] =
+    insertMeta[Company](_.id)
+  inline given upMeta: UpdateMeta[Company] =
+    updateMeta[Company](_.id)
 
   override def create(company: Company): Task[Company] =
     run:
@@ -41,8 +44,7 @@ class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends C
 
   override def update(id: Long, op: Company => Company): Task[Company] =
     for
-      curr <- getById(id)
-        .someOrFail(new RuntimeException(s"Could not update missing id: $id"))
+      curr    <- getById(id).someOrFail(failMsg("update", id))
       updated <- run:
         query[Company]
           .filter(_.id == lift(id))
@@ -51,12 +53,17 @@ class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends C
     yield updated
 
   override def delete(id: Long): Task[Company] =
-    run:
-      query[Company]
-        .filter(_.id == lift(id))
-        .delete
-        .returning(c => c)
-end CompanyRepositoryLive
+    for
+      _       <- getById(id).someOrFail(failMsg("delete", id))
+      updated <- run:
+        query[Company]
+          .filter(_.id == lift(id))
+          .delete
+          .returning(c => c)
+    yield updated
+    
+  private def failMsg(method: String, id: Long): Throwable =
+    new RuntimeException(s"could not $method missing id: $id")
 
 object CompanyRepositoryLive:
   val layer: ZLayer[Quill.Postgres[SnakeCase], Nothing, CompanyRepositoryLive] =

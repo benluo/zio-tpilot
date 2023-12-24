@@ -28,4 +28,3 @@ object Application extends ZIOAppDefault:
       // other requirements
       Repository.dataLayer
     )
-end Application

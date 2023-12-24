@@ -1,11 +1,9 @@
 package com.rockthejvm.reviewboard.http.endpoints
 
 import sttp.tapir.*
-import sttp.tapir.server.ServerEndpoint
-import zio.*
 
 trait HealthEndpoint:
-  val healthEndpoint =
+  val healthEndpoint: Endpoint[Unit, Unit, Unit, String, Any] =
     endpoint
       .tag("health")
       .name("health")

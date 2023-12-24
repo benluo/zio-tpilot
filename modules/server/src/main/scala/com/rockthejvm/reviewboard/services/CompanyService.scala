@@ -4,7 +4,6 @@ import com.rockthejvm.reviewboard.domain.data.*
 import com.rockthejvm.reviewboard.http.requests.CreateCompanyRequest
 import com.rockthejvm.reviewboard.repositories.CompanyRepository
 
-import collection.mutable
 import zio.*
 
 /** business logic for company listings */
@@ -26,7 +25,6 @@ class CompanyServiceLive private (repo: CompanyRepository) extends CompanyServic
 
   override def getBySlug(slug: String): Task[Option[Company]] =
     repo.getBySlug(slug)
-end CompanyServiceLive
 
 object CompanyServiceLive:
   val layer: ZLayer[CompanyRepository, Nothing, CompanyServiceLive] =
