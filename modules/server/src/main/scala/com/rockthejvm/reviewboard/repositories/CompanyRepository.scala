@@ -6,13 +6,8 @@ import io.getquill.*
 import io.getquill.jdbczio.Quill
 
 /** db logic for company listings */
-trait CompanyRepository:
-  def create(company: Company): Task[Company]
-  def update(id: Long, op: Company => Company): Task[Company]
-  def delete(id: Long): Task[Company]
-  def getById(id: Long): Task[Option[Company]]
+trait CompanyRepository extends BaseRepository[Company]:
   def getBySlug(slug: String): Task[Option[Company]]
-  def getAll: Task[List[Company]]
 
 /** implementation of CompanyRepository using quill and postgresql */
 class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends CompanyRepository:
@@ -55,12 +50,12 @@ class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends C
   override def delete(id: Long): Task[Company] =
     for
       _       <- getById(id).someOrFail(failMsg("delete", id))
-      updated <- run:
+      deleted <- run:
         query[Company]
           .filter(_.id == lift(id))
           .delete
           .returning(c => c)
-    yield updated
+    yield deleted
     
   private def failMsg(method: String, id: Long): Throwable =
     new RuntimeException(s"could not $method missing id: $id")

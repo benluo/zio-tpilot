@@ -1,21 +1,22 @@
 package com.rockthejvm.reviewboard.http
 
 import com.rockthejvm.reviewboard.http.controllers.*
-import com.rockthejvm.reviewboard.services.CompanyService
+import com.rockthejvm.reviewboard.services.{CompanyService, ReviewService}
 import sttp.tapir.server.ServerEndpoint
-import zio.{RIO, Task}
+import zio.{URIO, Task, ZIO}
 
 /** the api of the http layer of the application */
 object HttpApi:
   /** a ZIO-wrapped list of all available endpoints */
-  val endpointsZIO: RIO[CompanyService, List[ServerEndpoint[Any, Task]]] =
+  val endpointsZIO: URIO[ReviewService with CompanyService, List[ServerEndpoint[Any, Task]]] =
     makeControllers.map(gatherRoutes)
     
-  private def gatherRoutes(controllers: List[BaseController]): List[ServerEndpoint[Any, Task]] =
+  private def gatherRoutes(controllers: List[BaseController]) =
     controllers.flatMap(_.routes)
 
-  private def makeControllers: RIO[CompanyService, List[BaseController]] =
+  private def makeControllers =
     for
       health    <- HealthController.makeZIO
       companies <- CompanyController.makeZIO
-    yield List(health, companies)
+      reviews   <- ReviewController.makeZIO
+    yield List(health, companies, reviews)

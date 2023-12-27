@@ -24,5 +24,4 @@ class CompanyController private (service: CompanyService) extends BaseController
 
 object CompanyController:
   val makeZIO: URIO[CompanyService, CompanyController] =
-    ZIO.service[CompanyService]
-      .map(service => new CompanyController(service))
+    ZIO.service[CompanyService].map(new CompanyController(_))

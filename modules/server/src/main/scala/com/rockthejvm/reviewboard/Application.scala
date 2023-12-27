@@ -10,7 +10,7 @@ import zio.http.Server
 
 /** the entry point for the application */
 object Application extends ZIOAppDefault:
-  private val serverProgram: RIO[Server with CompanyService, Unit] =
+  private val serverProgram: RIO[Server with CompanyService with ReviewService, Unit] =
     for
       endpoints <- HttpApi.endpointsZIO
       interpreter <- ZIO.succeed(ZioHttpInterpreter(ZioHttpServerOptions.default))
@@ -23,8 +23,10 @@ object Application extends ZIOAppDefault:
       Server.default,
       // services
       CompanyServiceLive.layer,
+      ReviewServiceLive.layer,
       // repos
       CompanyRepositoryLive.layer,
+      ReviewRepositoryLive.layer,
       // other requirements
       Repository.dataLayer
     )
