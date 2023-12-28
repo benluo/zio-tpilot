@@ -64,9 +64,9 @@ object ReviewRepositorySpec extends ZIOSpecDefault with RepositorySpec:
 
       test("update"):
         for
-          repo <- ZIO.service[ReviewRepository]
+          repo     <- ZIO.service[ReviewRepository]
           original <- repo.create(goodReview)
-          updated <- repo.update(original.id, _.copy(review = "SOOO GOOD"))
+          updated  <- repo.update(original.id, _.copy(review = "SOOO GOOD"))
         yield assertTrue:
           updated.id == original.id &&
           updated.companyId == original.companyId &&
