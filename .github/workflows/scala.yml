@@ -28,7 +28,7 @@ jobs:
         distribution: 'temurin'
         cache: 'sbt'
     - name: Set up Scala 3.3.1
-      uses: olafurpg/setup-scala@v15
+      uses: olafurpg/setup-scala@v14
       with:
         scala-version: '3.3.1'
     - name: Set up sbt
