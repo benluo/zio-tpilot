@@ -29,6 +29,10 @@ jobs:
         cache: 'sbt'
     - name: setup-scala
       uses: olafurpg/setup-scala@v10
+    - name: clean & compile
+      run: |
+        sbt clean
+        sbt compile
     - name: Run tests
       run: sbt test
       # Optional: This step uploads information to the GitHub dependency graph and unblocking Dependabot alerts for the repository
