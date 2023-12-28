@@ -6,7 +6,7 @@ import io.getquill.*
 import io.getquill.jdbczio.Quill
 
 /** db logic for company listings */
-trait CompanyRepository extends BaseRepository[Company]:
+trait CompanyRepository extends Repository[Company]:
   def getBySlug(slug: String): Task[Option[Company]]
 
 /** implementation of CompanyRepository using quill and postgresql */

@@ -6,7 +6,7 @@ import sttp.tapir.server.ServerEndpoint
 import zio.*
 
 /** a controller that implements handling logic for company endpoints */
-class CompanyController private (service: CompanyService) extends BaseController with CompanyEndpoints:
+class CompanyController private (service: CompanyService) extends Controller with CompanyEndpoints:
   val create: ServerEndpoint[Any, Task] =
     createEndpoint.serverLogicSuccess(service.create)
     

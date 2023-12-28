@@ -6,6 +6,13 @@ import zio.*
 
 import javax.sql.DataSource
 
+trait Repository[A]:
+  def create(item: A): Task[A]
+  def update(id: Long, op: A => A): Task[A]
+  def delete(id: Long): Task[A]
+  def getById(id: Long): Task[Option[A]]
+  def getAll: Task[List[A]]
+
 object Repository:
   def quillLayer: ZLayer[DataSource, Nothing, Quill.Postgres[SnakeCase.type]] =
     Quill.Postgres.fromNamingStrategy(SnakeCase)

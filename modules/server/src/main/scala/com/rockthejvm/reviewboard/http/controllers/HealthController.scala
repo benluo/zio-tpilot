@@ -5,7 +5,7 @@ import sttp.tapir.server.ServerEndpoint
 import zio.*
 
 /** a controller that implements health check endpoints */
-class HealthController private extends BaseController with HealthEndpoint:
+class HealthController private extends Controller with HealthEndpoint:
   val health: ServerEndpoint[Any, Task] =
     healthEndpoint.serverLogicSuccess(_ => ZIO.succeed("All good!"))
 

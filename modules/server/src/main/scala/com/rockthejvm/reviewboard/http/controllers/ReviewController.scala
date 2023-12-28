@@ -5,26 +5,21 @@ import com.rockthejvm.reviewboard.services.ReviewService
 import sttp.tapir.server.ServerEndpoint
 import zio.*
 
-class ReviewController private (service: ReviewService) extends BaseController with ReviewEndpoints:
+class ReviewController private (service: ReviewService) extends Controller with ReviewEndpoints:
   val create: ServerEndpoint[Any, Task] =
-    createEndpoint.serverLogicSuccess(service.create)
+    createEndpoint.serverLogicSuccess(r => service.create(r, -1L)) // TODO: userID
     
   val getAll: ServerEndpoint[Any, Task] =
     getAllEndpoint.serverLogicSuccess(_ => service.getAll)
     
   val getById: ServerEndpoint[Any, Task] =
-    getByIdEndpoint.serverLogicSuccess: id =>
-      ZIO.attempt(id.toLong).flatMap(service.getById)
+    getByIdEndpoint.serverLogicSuccess(service.getById)
       
   val getByCompanyId: ServerEndpoint[Any, Task] =
-    getByCompanyIdEndpoint.serverLogicSuccess: id =>
-      ZIO.succeed(id.toLongOption).flatMap:
-        case Some(value) => service.getByCompanyId(value)
-        case None => ZIO.fail(new RuntimeException("company id does not exist"))
+    getByCompanyIdEndpoint.serverLogicSuccess(service.getByCompanyId)
         
   val getByUserId: ServerEndpoint[Any, Task] =
-    getByUserIdEndpoint.serverLogicSuccess: id =>
-      ZIO.attempt(id.toLong).flatMap(service.getByUserId)
+    getByUserIdEndpoint.serverLogicSuccess(service.getByUserId)
   
   override val routes: List[ServerEndpoint[Any, Task]] =
     List(create, getAll, getById, getByCompanyId, getByUserId)

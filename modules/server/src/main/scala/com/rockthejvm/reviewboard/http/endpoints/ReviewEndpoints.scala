@@ -28,29 +28,29 @@ trait ReviewEndpoints:
       .get
       .out(jsonBody[List[Review]])
 
-  val getByIdEndpoint: EP[String, Option[Review]] =
+  val getByIdEndpoint: EP[Long, Option[Review]] =
     endpoint
       .tag("reviews")
       .name("getById")
       .description("get review by id")
-      .in("reviews" / path[String]("id"))
+      .in("reviews" / path[Long]("id"))
       .get
       .out(jsonBody[Option[Review]])
     
-  val getByCompanyIdEndpoint: EP[String, List[Review]] =
+  val getByCompanyIdEndpoint: EP[Long, List[Review]] =
     endpoint
       .tag("reviews")
       .name("getByCompanyId")
       .description("get reviews for a company by id or slug")
-      .in("reviews" / "company" / path[String]("id"))
+      .in("reviews" / "company" / path[Long]("id"))
       .get
       .out(jsonBody[List[Review]])
     
-  val getByUserIdEndpoint: EP[String, List[Review]] =
+  val getByUserIdEndpoint: EP[Long, List[Review]] =
     endpoint
       .tag("reviews")
       .name("getByUserId")
       .description("get reviews written by a user")
-      .in("reviews" / "user" / path[String]("id"))
+      .in("reviews" / "user" / path[Long]("id"))
       .get
       .out(jsonBody[List[Review]])

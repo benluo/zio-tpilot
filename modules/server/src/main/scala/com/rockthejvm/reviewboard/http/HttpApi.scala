@@ -11,7 +11,7 @@ object HttpApi:
   val endpointsZIO: URIO[ReviewService with CompanyService, List[ServerEndpoint[Any, Task]]] =
     makeControllers.map(gatherRoutes)
     
-  private def gatherRoutes(controllers: List[BaseController]) =
+  private def gatherRoutes(controllers: List[Controller]) =
     controllers.flatMap(_.routes)
 
   private def makeControllers =
