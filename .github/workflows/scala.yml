@@ -29,6 +29,8 @@ jobs:
         cache: 'sbt'
     - name: setup-scala
       uses: olafurpg/setup-scala@v10
+      with:
+        java-version: adopt
     - name: clean & compile
       run: |
         sbt clean
