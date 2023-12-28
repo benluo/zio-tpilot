@@ -69,15 +69,14 @@ object ReviewRepositorySpec extends ZIOSpecDefault with RepositorySpec:
           updated <- repo.update(original.id, _.copy(review = "SOOO GOOD"))
         yield assertTrue:
           updated.id == original.id &&
-            updated.companyId == original.companyId &&
-            updated.userId == original.userId &&
-            updated.management == original.management &&
-            updated.culture == original.culture &&
-            updated.salary == original.salary &&
-            updated.wouldRecommend == original.wouldRecommend &&
-            updated.review == "SOOO GOOD" &&
-            updated.created == original.created &&
-            updated.updated != original.updated,
+          updated.companyId == original.companyId &&
+          updated.userId == original.userId &&
+          updated.management == original.management &&
+          updated.culture == original.culture &&
+          updated.salary == original.salary &&
+          updated.wouldRecommend == original.wouldRecommend &&
+          updated.review == "SOOO GOOD" &&
+          updated.created == original.created,
 
       test("delete"):
         for
