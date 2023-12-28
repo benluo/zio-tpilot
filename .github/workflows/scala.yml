@@ -16,25 +16,13 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: 'sbt'
     - name: setup-scala
       uses: olafurpg/setup-scala@v10
       with:
         java-version: adopt
-    - name: clean & compile
-      run: |
-        sbt clean
-        sbt compile
     - name: Run tests
       run: sbt test
       # Optional: This step uploads information to the GitHub dependency graph and unblocking Dependabot alerts for the repository
