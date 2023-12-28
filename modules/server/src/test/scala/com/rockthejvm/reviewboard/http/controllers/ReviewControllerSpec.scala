@@ -4,6 +4,8 @@ import zio.*
 import zio.test.*
 
 object ReviewControllerSpec extends ZIOSpecDefault:
-  // TODO: finish spec
-  override def spec: Spec[TestEnvironment with Scope, Any] = ???
+  override def spec: Spec[TestEnvironment with Scope, Any] =
+    suite("ReviewControllerSpec")(
+      // TODO: complete spec
+    )
 
