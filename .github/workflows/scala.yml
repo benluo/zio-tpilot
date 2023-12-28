@@ -27,15 +27,8 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: 'sbt'
-    - name: Set up Scala 3.3.1
-      uses: olafurpg/setup-scala@v14
-      with:
-        scala-version: '3.3.1'
-    - name: Set up sbt
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install -y sbt=1.9.8
-        sbt sbtVersion
+    - name: setup-scala
+      uses: olafurpg/setup-scala@v10
     - name: Run tests
       run: sbt test
       # Optional: This step uploads information to the GitHub dependency graph and unblocking Dependabot alerts for the repository
