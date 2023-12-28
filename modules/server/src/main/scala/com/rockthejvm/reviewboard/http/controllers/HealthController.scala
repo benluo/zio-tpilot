@@ -1,15 +1,21 @@
 package com.rockthejvm.reviewboard.http.controllers
 
-import com.rockthejvm.reviewboard.http.endpoints.HealthEndpoint
+import com.rockthejvm.reviewboard.domain.errors.HttpError
+import com.rockthejvm.reviewboard.http.endpoints.HealthEndpoints
+import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 import zio.*
 
 /** a controller that implements health check endpoints */
-class HealthController private extends Controller with HealthEndpoint:
+class HealthController private extends Controller with HealthEndpoints:
   val health: ServerEndpoint[Any, Task] =
     healthEndpoint.serverLogicSuccess(_ => ZIO.succeed("All good!"))
 
-  override val routes: List[ServerEndpoint[Any, Task]] = List(health)
+  val error: ServerEndpoint[Any, Task] =
+    errorEndpoint
+      .serverLogic[Task](_ => ZIO.fail(new RuntimeException("Boom!")).either)
+
+  override val routes: List[ServerEndpoint[Any, Task]] = List(health, error)
 
 object HealthController:
   val makeZIO: UIO[HealthController] =

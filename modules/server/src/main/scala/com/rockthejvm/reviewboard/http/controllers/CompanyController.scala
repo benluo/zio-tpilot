@@ -8,16 +8,16 @@ import zio.*
 /** a controller that implements handling logic for company endpoints */
 class CompanyController private (service: CompanyService) extends Controller with CompanyEndpoints:
   val create: ServerEndpoint[Any, Task] =
-    createEndpoint.serverLogicSuccess(service.create)
+    createEndpoint.serverLogic(service.create(_).either)
     
   val getAll: ServerEndpoint[Any, Task] =
-    getAllEndpoint.serverLogicSuccess(_ => service.getAll)
+    getAllEndpoint.serverLogic(_ => service.getAll.either)
 
   val getById: ServerEndpoint[Any, Task] =
-    getByIdEndpoint.serverLogicSuccess: id =>
+    getByIdEndpoint.serverLogic: id =>
       ZIO.succeed(id.toLongOption).flatMap:
-        case Some(value) => service.getById(value)
-        case None => service.getBySlug(id)
+        case Some(value) => service.getById(value).either
+        case None => service.getBySlug(id).either
 
   override val routes: List[ServerEndpoint[Any, Task]] =
     List(create, getAll, getById)
