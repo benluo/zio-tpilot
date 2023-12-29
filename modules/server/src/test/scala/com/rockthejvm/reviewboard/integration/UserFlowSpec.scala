@@ -1,12 +1,12 @@
 package com.rockthejvm.reviewboard.integration
 
-import com.rockthejvm.reviewboard.config.JwtConfig
+import com.rockthejvm.reviewboard.config.{JwtConfig, RecoveryTokensConfig}
 import com.rockthejvm.reviewboard.domain.data.UserToken
 import zio.*
 import com.rockthejvm.reviewboard.http.controllers.UserController
 import com.rockthejvm.reviewboard.http.requests.{LoginRequest, RegisterUserRequest, UpdatePasswordRequest}
 import com.rockthejvm.reviewboard.http.responses.UserResponse
-import com.rockthejvm.reviewboard.repositories.{Repository, RepositorySpec, UserRepositoryLive}
+import com.rockthejvm.reviewboard.repositories.{RecoveryTokensRepositoryLive, Repository, RepositorySpec, UserRepositoryLive}
 import com.rockthejvm.reviewboard.services.*
 import sttp.client3.*
 import sttp.client3.testing.SttpBackendStub
@@ -101,5 +101,12 @@ object UserFlowSpec extends ZIOSpecDefault with RepositorySpec:
       UserRepositoryLive.layer,
       Repository.quillLayer,
       dataSourceLayer,
-      ZLayer.succeed(JwtConfig("secret", 3600))
+      ZLayer.succeed:
+        JwtConfig("secret", 3600),
+      RecoveryTokensRepositoryLive.layer,
+      ZLayer.succeed:
+        RecoveryTokensConfig(3600L),
+      ZLayer.succeed:
+        new EmailService:
+          override def sendEmail(to: String, subject: String, content: String): Task[Unit] = ZIO.unit
     )

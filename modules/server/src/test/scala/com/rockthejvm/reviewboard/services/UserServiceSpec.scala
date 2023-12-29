@@ -1,7 +1,7 @@
 package com.rockthejvm.reviewboard.services
 
-import com.rockthejvm.reviewboard.domain.data.{User, UserId, UserToken}
-import com.rockthejvm.reviewboard.repositories.UserRepository
+import com.rockthejvm.reviewboard.domain.data.{RecoveryToken, User, UserId, UserToken}
+import com.rockthejvm.reviewboard.repositories.{RecoveryTokensRepository, UserRepository}
 import zio.*
 import zio.test.*
 
@@ -12,7 +12,7 @@ object UserServiceSpec extends ZIOSpecDefault:
     "1000:6138DE5D5322694F287FBF5E28FD85D9B6C5642A7F693BAD:3E587FE6FE26F25AF88F69E372B0D79720A3645669F677A5"
   )
 
-  private def stubbedRepo = ZLayer.succeed:
+  private def stubbedUserRepo = ZLayer.succeed:
     new UserRepository:
       private val db: collection.mutable.Map[Long, User] =
         collection.mutable.Map(daniel.id -> daniel)
@@ -42,7 +42,7 @@ object UserServiceSpec extends ZIOSpecDefault:
 
       override def getAll: Task[List[User]] =
         ZIO.succeed(db.values.toList)
-  end stubbedRepo
+  end stubbedUserRepo
 
   private def stubbedJwtService = ZLayer.succeed:
     new JwtService:
@@ -51,6 +51,23 @@ object UserServiceSpec extends ZIOSpecDefault:
       override def verifyToken(token: String): Task[UserId] =
         ZIO.succeed(UserId(1L, "daniel@rockthejvm.com"))
   end stubbedJwtService
+  
+  private def stubbedEmailService = ZLayer.succeed:
+    new EmailService:
+      override def sendEmail(to: String, subject: String, content: String): Task[Unit] =
+        ZIO.unit
+  end stubbedEmailService
+  
+  private def stubbedTokensRepo = ZLayer.succeed:
+    new RecoveryTokensRepository:
+      private val db = collection.mutable.Map[String, RecoveryToken](
+        daniel.email -> RecoveryToken(daniel.email, "aToken", 999)
+      )
+      override def getToken(email: String): Task[Option[String]] =
+        ZIO.succeed(db.get(email).map(_.token))
+      override def checkToken(email: String, token: String): Task[Boolean] =
+        ZIO.succeed(db.get(email).exists(_.token == token))
+  end stubbedTokensRepo
 
   override def spec: Spec[TestEnvironment with Scope, Any] =
     suite("UserServiceSpec")(
@@ -89,7 +106,9 @@ object UserServiceSpec extends ZIOSpecDefault:
 
     ).provide(
       UserServiceLive.layer,
-      stubbedRepo,
-      stubbedJwtService
+      stubbedUserRepo,
+      stubbedJwtService,
+      stubbedEmailService,
+      stubbedTokensRepo
     )
 
