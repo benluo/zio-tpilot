@@ -7,6 +7,12 @@ import zio.config.magnolia.*
 import zio.config.typesafe.TypesafeConfig
 
 object Configs:
+  /**
+   * provide a Z-Layer from a config file
+   * @param path the path in application.config to parse
+   * @tparam C the case class to parse the contents of the config file at path as
+   * @return a Z-Layer for C
+   */
   def makeLayer[C : Descriptor : Tag](path: String): ZLayer[Any, Throwable, C] =
     TypesafeConfig.fromTypesafeConfig(
       ZIO.attempt(ConfigFactory.load().getConfig(path)),

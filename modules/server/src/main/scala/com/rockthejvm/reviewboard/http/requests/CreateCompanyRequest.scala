@@ -1,7 +1,7 @@
 package com.rockthejvm.reviewboard.http.requests
 
 import com.rockthejvm.reviewboard.domain.data.Company
-import zio.json.{DeriveJsonCodec, JsonCodec}
+import zio.json.JsonCodec
 
 /** the body of a create company request */
 final case class CreateCompanyRequest(
@@ -12,7 +12,7 @@ final case class CreateCompanyRequest(
   industry: Option[String] = None,
   image: Option[String] = None,
   tags: Option[List[String]] = None
-):
+) derives JsonCodec:
   def toCompany(id: Long): Company =
     Company(
       id,
@@ -25,8 +25,3 @@ final case class CreateCompanyRequest(
       image,
       tags.getOrElse(Nil)
     )
-end CreateCompanyRequest
-
-object CreateCompanyRequest:
-  given codec: JsonCodec[CreateCompanyRequest] =
-    DeriveJsonCodec.gen[CreateCompanyRequest]

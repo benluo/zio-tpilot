@@ -1,6 +1,5 @@
 package com.rockthejvm.reviewboard.http.controllers
 
-import com.rockthejvm.reviewboard.domain.errors.HttpError
 import com.rockthejvm.reviewboard.http.endpoints.HealthEndpoints
 import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint

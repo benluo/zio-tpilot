@@ -1,9 +1,10 @@
 package com.rockthejvm.reviewboard.domain.data
 
 import java.time.Instant
-import zio.json.{JsonCodec, DeriveJsonCodec}
+import zio.json.JsonCodec
 
-case class Review(
+/** a review for a company */
+final case class Review(
   id: Long,
   companyId: Long,
   userId: Long,
@@ -15,7 +16,4 @@ case class Review(
   review: String,
   created: Instant,
   updated: Instant
-)
-
-object Review:
-  given codec: JsonCodec[Review] = DeriveJsonCodec.gen[Review]
+) derives JsonCodec

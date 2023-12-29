@@ -1,5 +1,6 @@
 package com.rockthejvm.reviewboard
 
+import com.rockthejvm.reviewboard.config.{Configs, JwtConfig}
 import com.rockthejvm.reviewboard.http.HttpApi
 import com.rockthejvm.reviewboard.repositories.*
 import com.rockthejvm.reviewboard.services.*
@@ -10,7 +11,7 @@ import zio.http.Server
 
 /** the entry point for the application */
 object Application extends ZIOAppDefault:
-  private val serverProgram: RIO[Server with CompanyService with ReviewService, Unit] =
+  private val serverProgram =
     for
       endpoints <- HttpApi.endpointsZIO
       interpreter <- ZIO.succeed(ZioHttpInterpreter(ZioHttpServerOptions.default))
@@ -21,12 +22,17 @@ object Application extends ZIOAppDefault:
   override def run: Task[Unit] =
     serverProgram.provide(
       Server.default,
+      // configs
+      Configs.makeLayer[JwtConfig]("rockthejvm/jwt"),
       // services
       CompanyServiceLive.layer,
       ReviewServiceLive.layer,
+      UserServiceLive.layer,
+      JwtServiceLive.layer,
       // repos
       CompanyRepositoryLive.layer,
       ReviewRepositoryLive.layer,
+      UserRepositoryLive.layer,
       // other requirements
       Repository.dataLayer
     )
