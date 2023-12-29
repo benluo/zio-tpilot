@@ -1,8 +1,8 @@
 package com.rockthejvm.reviewboard.http.controllers
 
-import com.rockthejvm.reviewboard.domain.data.Company
+import com.rockthejvm.reviewboard.domain.data.{Company, User, UserId, UserToken}
 import com.rockthejvm.reviewboard.http.requests.CreateCompanyRequest
-import com.rockthejvm.reviewboard.services.CompanyService
+import com.rockthejvm.reviewboard.services.{CompanyService, JwtService}
 import com.rockthejvm.reviewboard.syntax.*
 import sttp.client3.*
 import sttp.client3.testing.SttpBackendStub
@@ -22,6 +22,7 @@ object CompanyControllerSpec extends ZIOSpecDefault:
         val req =
           basicRequest
             .post(uri"/companies")
+            .header("Authorization", "Bearer all_good")
             .body(CreateCompanyRequest("Rock the JVM", "rockthejvm.com").toJson)
 
         controller(_.create)(req)
@@ -71,7 +72,7 @@ object CompanyControllerSpec extends ZIOSpecDefault:
               .flatMap(_.fromJson[Company].toOption)
               .contains(rtjvm),
 
-    ).provide(serviceStub)
+    ).provide(serviceStub, jwtServiceStub)
   end spec
 
   private given zioMonadError: MonadError[Task] =
@@ -92,8 +93,17 @@ object CompanyControllerSpec extends ZIOSpecDefault:
           ZIO.succeed(Option.when(slug == rtjvm.slug)(rtjvm))
   end serviceStub
 
+  private val jwtServiceStub =
+    ZLayer.succeed:
+      new JwtService:
+        override def createToken(user: User): Task[UserToken] =
+          ZIO.succeed(UserToken(user.email, "all_good", 999999L))
+        override def verifyToken(token: String): Task[UserId] =
+          ZIO.succeed(UserId(1L, "daniel@rockthejvm.com"))
+  end jwtServiceStub
+
   private type ED = CompanyController => ServerEndpoint[Any, Task]
-  private def backendStubZIO(f: ED): RIO[CompanyService, SttpBackend[Task, Nothing]] =
+  private def backendStubZIO(f: ED): RIO[CompanyService & JwtService, SttpBackend[Task, Nothing]] =
     for
       controller <- CompanyController.makeZIO
       endpoint <- ZIO.succeed(f(controller))
@@ -103,7 +113,7 @@ object CompanyControllerSpec extends ZIOSpecDefault:
 
 
   private type Req = Request[Either[String, String], Any]
-  private def controller(f: ED)(req: Req): RIO[CompanyService, Either[String, String]] =
+  private def controller(f: ED)(req: Req): RIO[CompanyService & JwtService, Either[String, String]] =
     for
       backendStub <- backendStubZIO(f)
       response <- req.send(backendStub)

@@ -1,14 +1,18 @@
 package com.rockthejvm.reviewboard.http.controllers
 
+import com.rockthejvm.reviewboard.domain.data.UserId
 import com.rockthejvm.reviewboard.http.endpoints.CompanyEndpoints
-import com.rockthejvm.reviewboard.services.CompanyService
+import com.rockthejvm.reviewboard.services.{CompanyService, JwtService}
 import sttp.tapir.server.ServerEndpoint
 import zio.*
 
 /** a controller that implements handling logic for company endpoints */
-class CompanyController private (service: CompanyService) extends Controller with CompanyEndpoints:
+class CompanyController private (service: CompanyService, jwtService: JwtService)
+extends Controller with CompanyEndpoints:
   val create: ServerEndpoint[Any, Task] =
-    createEndpoint.serverLogic(service.create(_).either)
+    createEndpoint
+      .serverSecurityLogic[UserId, Task](jwtService.verifyToken(_).either)
+      .serverLogic(_ => service.create(_).either)
     
   val getAll: ServerEndpoint[Any, Task] =
     getAllEndpoint.serverLogic(_ => service.getAll.either)
@@ -23,5 +27,8 @@ class CompanyController private (service: CompanyService) extends Controller wit
     List(create, getAll, getById)
 
 object CompanyController:
-  val makeZIO: URIO[CompanyService, CompanyController] =
-    ZIO.service[CompanyService].map(new CompanyController(_))
+  val makeZIO: URIO[CompanyService & JwtService, CompanyController] =
+    for
+      companyService <- ZIO.service[CompanyService]
+      jwtService     <- ZIO.service[JwtService]
+    yield CompanyController(companyService, jwtService)

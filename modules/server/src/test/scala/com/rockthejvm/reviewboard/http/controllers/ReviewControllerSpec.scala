@@ -1,8 +1,8 @@
 package com.rockthejvm.reviewboard.http.controllers
 
-import com.rockthejvm.reviewboard.domain.data.Review
+import com.rockthejvm.reviewboard.domain.data.{Review, User, UserId, UserToken}
 import com.rockthejvm.reviewboard.http.requests.CreateReviewRequest
-import com.rockthejvm.reviewboard.services.ReviewService
+import com.rockthejvm.reviewboard.services.{JwtService, ReviewService}
 import sttp.client3.*
 import sttp.client3.testing.SttpBackendStub
 import sttp.monad.MonadError
@@ -35,9 +35,18 @@ object ReviewControllerSpec extends ZIOSpecDefault:
         override def getByUserId(id: Long): Task[List[Review]] =
           ZIO.succeed(List(goodReview))
   end serviceStub
+  
+  private val jwtServiceStub =
+    ZLayer.succeed:
+      new JwtService:
+        override def createToken(user: User): Task[UserToken] =
+          ZIO.succeed(UserToken(user.email, "all_good", 999999L))
+        override def verifyToken(token: String): Task[UserId] =
+          ZIO.succeed(UserId(1L, "daniel@rockthejvm.com"))
+  end jwtServiceStub
 
   private type ControllerMethod = ReviewController => ServerEndpoint[Any, Task]
-  private type StubbedBackend = RIO[ReviewService, SttpBackend[Task, Nothing]]
+  private type StubbedBackend = RIO[ReviewService & JwtService, SttpBackend[Task, Nothing]]
   private def backendStubZIO(f: ControllerMethod): StubbedBackend =
     for
       controller <- ReviewController.makeZIO
@@ -54,6 +63,7 @@ object ReviewControllerSpec extends ZIOSpecDefault:
           request <- ZIO.succeed:
             basicRequest
               .post(uri"/reviews")
+              .header("Authorization", "Bearer all_good")
               .body(CreateReviewRequest(1L, 5, 5, 5, 5, 10, "all good").toJson)
           response <- request.send(stub)
         yield assertTrue:
@@ -111,4 +121,4 @@ object ReviewControllerSpec extends ZIOSpecDefault:
             .flatMap(_.fromJson[List[Review]].toOption)
             .contains(List(goodReview)),
 
-    ).provide(serviceStub)
+    ).provide(serviceStub, jwtServiceStub)
