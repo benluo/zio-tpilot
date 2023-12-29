@@ -1,7 +1,7 @@
 package com.rockthejvm.reviewboard.services
 
 import com.rockthejvm.reviewboard.domain.data.{User, UserToken}
-import com.rockthejvm.reviewboard.repositories.UserRepository
+import com.rockthejvm.reviewboard.repositories.{RecoveryTokensRepository, UserRepository}
 import zio.*
 
 import java.security.SecureRandom
@@ -14,10 +14,17 @@ trait UserService:
   def generateToken(email: String, password: String): Task[UserToken]
   def updatePassword(email: String, oldPassword: String, newPassword: String): Task[User]
   def deleteUser(email: String, password: String): Task[User]
+  def sendRecoveryToken(email: String): Task[Unit]
+  def recoverFromToken(email: String, token: String, newPassword: String): Task[Boolean]
 
-class UserServiceLive private (jwtService: JwtService, repo: UserRepository) extends UserService:
+class UserServiceLive private (
+  jwtService: JwtService,
+  emailService: EmailService,
+  userRepo: UserRepository,
+  tokenRepo: RecoveryTokensRepository
+) extends UserService:
   override def registerUser(email: String, password: String): Task[User] =
-    repo.create(User(-1L, email, UserServiceLive.Hasher.generateHash(password)))
+    userRepo.create(User(-1L, email, UserServiceLive.Hasher.generateHash(password)))
 
   override def verifyPassword(email: String, password: String): Task[Boolean] =
     verifyUser(email, password).isSuccess
@@ -32,28 +39,47 @@ class UserServiceLive private (jwtService: JwtService, repo: UserRepository) ext
     import UserServiceLive.Hasher.generateHash
     for
       user    <- verifyUser(email, oldPassword)
-      updated <- repo.update(user.id, _.copy(hashedPassword = generateHash(newPassword)))
+      updated <- userRepo.update(user.id, _.copy(hashedPassword = generateHash(newPassword)))
     yield updated
 
   override def deleteUser(email: String, password: String): Task[User] =
     for
       user    <- verifyUser(email, password)
-      deleted <- repo.delete(user.id)
+      deleted <- userRepo.delete(user.id)
     yield deleted
 
   private def verifyUser(email: String, password: String): Task[User] =
     for
-      user         <- repo.getByEmail(email).someOrFail(new RuntimeException("bad email"))
+      user         <- userRepo.getByEmail(email).someOrFail(new RuntimeException("bad email"))
       verified     <- ZIO.attempt(UserServiceLive.Hasher.validateHash(password, user.hashedPassword))
       verifiedUser <- ZIO.attempt(user).when(verified).someOrFail(new RuntimeException("bad password"))
     yield verifiedUser
 
-object UserServiceLive:
-  val layer: ZLayer[UserRepository with JwtService, Nothing, UserServiceLive] = ZLayer:
+  override def sendRecoveryToken(email: String): Task[Unit] =
+    tokenRepo.getToken(email).flatMap:
+      case Some(token) => emailService.sendPasswordRecovery(email, token)
+      case None => ZIO.unit
+
+  override def recoverFromToken(email: String, token: String, newPassword: String): Task[Boolean] =
+    import UserServiceLive.Hasher.generateHash
     for
-      jwtService <- ZIO.service[JwtService]
-      userRepo   <- ZIO.service[UserRepository]
-    yield UserServiceLive(jwtService, userRepo)
+      user   <- userRepo.getByEmail(email).someOrFail(new RuntimeException("bad email"))
+      valid  <- tokenRepo.checkToken(email, token)
+      result <- userRepo
+        .update(user.id, _.copy(hashedPassword = generateHash(newPassword)))
+        .when(valid)
+        .map(_.nonEmpty)
+    yield result
+
+object UserServiceLive:
+  private type R = UserRepository & RecoveryTokensRepository & EmailService & JwtService
+  val layer: ZLayer[R, Nothing, UserServiceLive] = ZLayer:
+    for
+      jwtService   <- ZIO.service[JwtService]
+      emailService <- ZIO.service[EmailService]
+      userRepo     <- ZIO.service[UserRepository]
+      tokenRepo    <- ZIO.service[RecoveryTokensRepository]
+    yield UserServiceLive(jwtService, emailService, userRepo, tokenRepo)
 
   private object Hasher:
     def generateHash(str: String): String =

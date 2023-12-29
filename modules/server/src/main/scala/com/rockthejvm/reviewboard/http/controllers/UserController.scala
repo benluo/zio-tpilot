@@ -43,8 +43,24 @@ extends Controller with UserEndpoints:
             .map(user => UserResponse(user.email))
             .either
 
+  val forgotPassword: ServerEndpoint[Any, Task] =
+    forgotPasswordEndpoint
+      .serverLogic: req =>
+        userService
+          .sendRecoveryToken(req.email)
+          .either
+
+  val recoverPassword: ServerEndpoint[Any, Task] =
+    recoverPasswordEndpoint
+      .serverLogic: req =>
+        userService
+          .recoverFromToken(req.email, req.token, req.newPassword)
+          .filterOrFail(b => b)(new RuntimeException("unauthorized"))
+          .unit
+          .either
+
   override val routes: List[ServerEndpoint[Any, Task]] =
-    List(create, login, changePassword, delete)
+    List(create, login, changePassword, delete, forgotPassword, recoverPassword)
 
 object UserController:
   val makeZIO: URIO[JwtService with UserService, UserController] =

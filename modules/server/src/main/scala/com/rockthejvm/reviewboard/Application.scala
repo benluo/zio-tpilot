@@ -1,6 +1,6 @@
 package com.rockthejvm.reviewboard
 
-import com.rockthejvm.reviewboard.config.{Configs, JwtConfig}
+import com.rockthejvm.reviewboard.config.{Configs, EmailServiceConfig, JwtConfig, RecoveryTokensConfig}
 import com.rockthejvm.reviewboard.http.HttpApi
 import com.rockthejvm.reviewboard.repositories.*
 import com.rockthejvm.reviewboard.services.*
@@ -23,16 +23,20 @@ object Application extends ZIOAppDefault:
     serverProgram.provide(
       Server.default,
       // configs
-      Configs.makeLayer[JwtConfig]("rockthejvm/jwt"),
+      Configs.makeLayer[JwtConfig]("rockthejvm.jwt"),
+      Configs.makeLayer[RecoveryTokensConfig]("rockthejvm.recoverytokens"),
+      Configs.makeLayer[EmailServiceConfig]("rockthejvm.email"),
       // services
       CompanyServiceLive.layer,
       ReviewServiceLive.layer,
       UserServiceLive.layer,
       JwtServiceLive.layer,
+      EmailServiceLive.layer,
       // repos
       CompanyRepositoryLive.layer,
       ReviewRepositoryLive.layer,
       UserRepositoryLive.layer,
+      RecoveryTokensRepositoryLive.layer,
       // other requirements
       Repository.dataLayer
     )

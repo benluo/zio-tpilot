@@ -59,3 +59,12 @@ CREATE TABLE IF NOT EXISTS reviews (
                     NOT NULL
                     DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS recovery_tokens (
+    email       TEXT
+                PRIMARY KEY,
+    token       TEXT
+                NOT NULL,
+    expiration  BIGINT
+                NOT NULL
+);
