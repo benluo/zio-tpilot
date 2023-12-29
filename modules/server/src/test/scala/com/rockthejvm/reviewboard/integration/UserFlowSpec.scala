@@ -1,10 +1,10 @@
 package com.rockthejvm.reviewboard.integration
 
 import com.rockthejvm.reviewboard.config.{JwtConfig, RecoveryTokensConfig}
-import com.rockthejvm.reviewboard.domain.data.UserToken
+import com.rockthejvm.reviewboard.domain.data.{RecoveryToken, UserToken}
 import zio.*
 import com.rockthejvm.reviewboard.http.controllers.UserController
-import com.rockthejvm.reviewboard.http.requests.{LoginRequest, RegisterUserRequest, UpdatePasswordRequest}
+import com.rockthejvm.reviewboard.http.requests.{ForgotPasswordRequest, LoginRequest, RecoverPasswordRequest, RegisterUserRequest, UpdatePasswordRequest}
 import com.rockthejvm.reviewboard.http.responses.UserResponse
 import com.rockthejvm.reviewboard.repositories.{RecoveryTokensRepositoryLive, Repository, RepositorySpec, UserRepositoryLive}
 import com.rockthejvm.reviewboard.services.*
@@ -51,6 +51,13 @@ object UserFlowSpec extends ZIOSpecDefault with RepositorySpec:
     ): Task[Option[B]] =
       sendReq(Method.POST, path, payload, maybeToken)
 
+    def postNoResponse(path: String, payload: A): Task[Unit] =
+      basicRequest
+        .post(uri"$path")
+        .body(payload.toJson)
+        .send(backend)
+        .unit
+
     def put[B : JsonCodec](
         path: String,
         payload: A,
@@ -58,6 +65,17 @@ object UserFlowSpec extends ZIOSpecDefault with RepositorySpec:
     ): Task[Option[B]] =
       sendReq(Method.PUT, path, payload, maybeToken)
   end extension
+
+  private class EmailServiceProbe extends EmailService:
+    private val db = collection.mutable.Map.empty[String, RecoveryToken]
+    override def sendEmail(to: String, subject: String, content: String): Task[Unit] = ZIO.unit
+    override def sendPasswordRecovery(to: String, token: String): Task[Unit] =
+      ZIO.succeed:
+        db += (to -> RecoveryToken(to, token, -1L))
+    def probe(email: String): Task[Option[String]] =
+      ZIO.succeed:
+        db.get(email).map(_.token)
+  end EmailServiceProbe
 
   private val regReq = RegisterUserRequest("daniel@rockthejvm.com", "aPassword")
   private val logReq = LoginRequest("daniel@rockthejvm.com", "aPassword")
@@ -94,6 +112,20 @@ object UserFlowSpec extends ZIOSpecDefault with RepositorySpec:
           newTok.isDefined &&
           newTok.get.email == "daniel@rockthejvm.com",
 
+      test("recover password flow"):
+        for
+          backend <- backendStubZIO
+          _       <- backend.post[UserResponse]("/users", regReq)
+          _       <- backend.postNoResponse("/users/forgot", ForgotPasswordRequest(regReq.email))
+          probe   <- ZIO.service[EmailServiceProbe]
+          token   <- probe.probe(regReq.email).someOrFail(new RuntimeException("token was not emailed"))
+          _       <- backend.postNoResponse("/users/recover", RecoverPasswordRequest(regReq.email, token, "newPass"))
+          oldTok  <- backend.post[UserToken]("/users/login", logReq)
+          newTok  <- backend.post[UserToken]("/users/login", logReq.copy(password = "newPass"))
+        yield assertTrue:
+          oldTok.isEmpty &&
+          newTok.exists(_.email == regReq.email),
+
     ).provide(
       Scope.default,
       UserServiceLive.layer,
@@ -101,12 +133,8 @@ object UserFlowSpec extends ZIOSpecDefault with RepositorySpec:
       UserRepositoryLive.layer,
       Repository.quillLayer,
       dataSourceLayer,
-      ZLayer.succeed:
-        JwtConfig("secret", 3600),
+      ZLayer.succeed(JwtConfig("secret", 3600)),
       RecoveryTokensRepositoryLive.layer,
-      ZLayer.succeed:
-        RecoveryTokensConfig(3600L),
-      ZLayer.succeed:
-        new EmailService:
-          override def sendEmail(to: String, subject: String, content: String): Task[Unit] = ZIO.unit
+      ZLayer.succeed(RecoveryTokensConfig(3600L)),
+      ZLayer.succeed(EmailServiceProbe())
     )
