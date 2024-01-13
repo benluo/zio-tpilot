@@ -12,7 +12,7 @@ object NavLinks:
         case (text, location) =>
           li(
             cls := "nav-item",
-            Anchors.NavLink(text, location, "jvm-item")
+            Anchors.navLink(text, location, "jvm-item")
           )
     )
     

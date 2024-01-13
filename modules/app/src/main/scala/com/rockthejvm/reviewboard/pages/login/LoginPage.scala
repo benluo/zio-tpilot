@@ -1,4 +1,4 @@
-package com.rockthejvm.reviewboard.pages
+package com.rockthejvm.reviewboard.pages.login
 
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement

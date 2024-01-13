@@ -1,9 +1,11 @@
 package com.rockthejvm.reviewboard.components
 
 import com.rockthejvm.reviewboard.pages.*
-
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import com.rockthejvm.reviewboard.pages.companies.CompaniesPage
+import com.rockthejvm.reviewboard.pages.login.LoginPage
+import com.rockthejvm.reviewboard.pages.signup.SignUpPage
 import frontroute.*
 import org.scalajs.dom.HTMLElement
 

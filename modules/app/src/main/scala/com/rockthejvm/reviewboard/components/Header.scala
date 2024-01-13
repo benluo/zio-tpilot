@@ -1,13 +1,12 @@
 package com.rockthejvm.reviewboard.components
 
+import com.rockthejvm.reviewboard.common.*
+
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.codecs.StringAsIsCodec
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import org.scalajs.dom
 import org.scalajs.dom.HTMLElement
-
-import scala.scalajs.js
-import scala.scalajs.js.annotation.JSImport
 
 object Header:
   def apply(): ReactiveHtmlElement[HTMLElement] =
@@ -50,17 +49,13 @@ object Header:
       )
     )
 
-  @js.native
-  @JSImport("/static/img/fiery-lava 128x128.png", JSImport.Default)
-  private val logoImage: String = js.native
-
   private def Logo() =
     a(
       href := "/",
       cls := "navbar-brand",
       img(
         cls := "home-logo",
-        src := logoImage,
+        src := Constants.logoImage,
         alt := "Rock the JVM"
       )
     )

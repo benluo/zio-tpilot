@@ -5,7 +5,7 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import org.scalajs.dom.HTMLAnchorElement
 
 object Anchors:
-  def NavLink(
+  def navLink(
     text: String,
     location: String,
     cssClass: String = ""
