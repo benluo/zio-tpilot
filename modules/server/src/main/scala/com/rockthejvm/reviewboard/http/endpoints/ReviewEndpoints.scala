@@ -7,7 +7,7 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.json.zio.jsonBody
 
 trait ReviewEndpoints extends Endpoints:
-  val createEndpoint: SEP[CreateReviewRequest, Review] =
+  val createEndpoint: SecureEP[CreateReviewRequest, Review] =
     secureEndpoint
       .tag("reviews")
       .name("create")

@@ -50,7 +50,7 @@ object ReviewControllerSpec extends ZIOSpecDefault:
   private def backendStubZIO(f: ControllerMethod): StubbedBackend =
     for
       controller <- ReviewController.makeZIO
-      endpoint <- ZIO.succeed(f(controller))
+      endpoint   <- ZIO.succeed(f(controller))
     yield TapirStubInterpreter(SttpBackendStub(MonadError[Task]))
       .whenServerEndpointRunLogic(endpoint)
       .backend()
@@ -59,7 +59,7 @@ object ReviewControllerSpec extends ZIOSpecDefault:
     suite("ReviewControllerSpec")(
       test("create"):
         for
-          stub <- backendStubZIO(_.create)
+          stub    <- backendStubZIO(_.create)
           request <- ZIO.succeed:
             basicRequest
               .post(uri"/reviews")
@@ -75,8 +75,8 @@ object ReviewControllerSpec extends ZIOSpecDefault:
 
       test("getById"):
         for
-          stub <- backendStubZIO(_.getById)
-          request <- ZIO.succeed(basicRequest.get(uri"/reviews/1"))
+          stub     <- backendStubZIO(_.getById)
+          request  <- ZIO.succeed(basicRequest.get(uri"/reviews/1"))
           response <- request.send(stub)
         yield assertTrue:
           response
@@ -87,8 +87,8 @@ object ReviewControllerSpec extends ZIOSpecDefault:
 
       test("getByCompanyId"):
         for
-          stub <- backendStubZIO(_.getByCompanyId)
-          request <- ZIO.succeed(basicRequest.get(uri"/reviews/company/1"))
+          stub     <- backendStubZIO(_.getByCompanyId)
+          request  <- ZIO.succeed(basicRequest.get(uri"/reviews/company/1"))
           response <- request.send(stub)
         yield assertTrue:
           response
@@ -99,8 +99,8 @@ object ReviewControllerSpec extends ZIOSpecDefault:
 
       test("getByUserId"):
         for
-          stub <- backendStubZIO(_.getByUserId)
-          request <- ZIO.succeed(basicRequest.get(uri"/reviews/user/1"))
+          stub     <- backendStubZIO(_.getByUserId)
+          request  <- ZIO.succeed(basicRequest.get(uri"/reviews/user/1"))
           response <- request.send(stub)
         yield assertTrue:
           response
@@ -111,8 +111,8 @@ object ReviewControllerSpec extends ZIOSpecDefault:
 
       test("getAll"):
         for
-          stub <- backendStubZIO(_.getAll)
-          request <- ZIO.succeed(basicRequest.get(uri"/reviews"))
+          stub     <- backendStubZIO(_.getAll)
+          request  <- ZIO.succeed(basicRequest.get(uri"/reviews"))
           response <- request.send(stub)
         yield assertTrue:
           response

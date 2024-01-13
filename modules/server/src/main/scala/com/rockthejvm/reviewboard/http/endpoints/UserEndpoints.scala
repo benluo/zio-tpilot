@@ -18,7 +18,7 @@ trait UserEndpoints extends Endpoints:
       .in(jsonBody[RegisterUserRequest])
       .out(jsonBody[UserResponse])
   
-  val updatePasswordEndpoint: SEP[UpdatePasswordRequest, UserResponse] =
+  val updatePasswordEndpoint: SecureEP[UpdatePasswordRequest, UserResponse] =
     secureEndpoint
       .tag("users")
       .name("updatePassword")
@@ -28,7 +28,7 @@ trait UserEndpoints extends Endpoints:
       .in(jsonBody[UpdatePasswordRequest])
       .out(jsonBody[UserResponse])
   
-  val deleteEndpoint: SEP[DeleteAccountRequest, UserResponse] =
+  val deleteEndpoint: SecureEP[DeleteAccountRequest, UserResponse] =
     secureEndpoint
       .tag("users")
       .name("deleteUser")

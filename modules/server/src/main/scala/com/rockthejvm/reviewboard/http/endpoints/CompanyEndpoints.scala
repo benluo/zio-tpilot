@@ -7,7 +7,7 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.json.zio.jsonBody
 
 trait CompanyEndpoints extends Endpoints:
-  val createEndpoint: SEP[CreateCompanyRequest, Company] =
+  val createEndpoint: SecureEP[CreateCompanyRequest, Company] =
     secureEndpoint
       .tag("companies")
       .name("create")
