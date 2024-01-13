@@ -40,3 +40,9 @@ build/
 
 ### BSP ###
 .bsp/
+
+### Node/Parcel ###
+/modules/app/.parcel-cache/
+/modules/app/node_modules/
+/modules/app/dist/
+/modules/app/package-lock.json
