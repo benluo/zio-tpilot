@@ -1,7 +1,7 @@
 package com.rockthejvm.reviewboard.http.endpoints
 
 import com.rockthejvm.reviewboard.domain.data.UserToken
-import com.rockthejvm.reviewboard.http.requests.*
+import com.rockthejvm.reviewboard.http.requests.{DeleteAccountRequest, ForgotPasswordRequest, LoginRequest, RecoverPasswordRequest, RegisterUserRequest, UpdatePasswordRequest}
 import com.rockthejvm.reviewboard.http.responses.UserResponse
 import sttp.tapir.*
 import sttp.tapir.json.zio.jsonBody

@@ -3,7 +3,6 @@ package com.rockthejvm.reviewboard.services
 import com.rockthejvm.reviewboard.domain.data.*
 import com.rockthejvm.reviewboard.http.requests.CreateCompanyRequest
 import com.rockthejvm.reviewboard.repositories.CompanyRepository
-
 import zio.*
 
 /** business logic for company listings */

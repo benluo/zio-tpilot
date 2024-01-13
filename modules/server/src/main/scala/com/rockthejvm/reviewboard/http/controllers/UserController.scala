@@ -2,7 +2,6 @@ package com.rockthejvm.reviewboard.http.controllers
 
 import com.rockthejvm.reviewboard.domain.data.UserId
 import com.rockthejvm.reviewboard.http.endpoints.UserEndpoints
-import com.rockthejvm.reviewboard.http.requests.DeleteAccountRequest
 import com.rockthejvm.reviewboard.http.responses.UserResponse
 import com.rockthejvm.reviewboard.services.{JwtService, UserService}
 import sttp.tapir.*

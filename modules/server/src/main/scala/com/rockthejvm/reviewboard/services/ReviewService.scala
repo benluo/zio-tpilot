@@ -1,7 +1,7 @@
 package com.rockthejvm.reviewboard.services
 
-import com.rockthejvm.reviewboard.http.requests.CreateReviewRequest
 import com.rockthejvm.reviewboard.domain.data.Review
+import com.rockthejvm.reviewboard.http.requests.CreateReviewRequest
 import com.rockthejvm.reviewboard.repositories.ReviewRepository
 import zio.*
 
