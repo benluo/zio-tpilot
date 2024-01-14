@@ -5,6 +5,7 @@ import com.rockthejvm.reviewboard.http.HttpApi
 import com.rockthejvm.reviewboard.repositories.*
 import com.rockthejvm.reviewboard.services.*
 import sttp.tapir.*
+import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import sttp.tapir.server.ziohttp.*
 import zio.*
 import zio.http.Server
@@ -14,9 +15,14 @@ object Application extends ZIOAppDefault:
   private val serverProgram =
     for
       endpoints <- HttpApi.endpointsZIO
-      interpreter <- ZIO.succeed(ZioHttpInterpreter(ZioHttpServerOptions.default))
-      app <- ZIO.succeed(interpreter.toHttp(endpoints).withDefaultErrorResponse)
-      _ <- Server.serve(app)
+      options   <- ZIO.succeed:
+                     ZioHttpServerOptions
+                       .default
+                       .appendInterceptor(CORSInterceptor.default)
+      _         <- Server.serve:
+                     ZioHttpInterpreter(options)
+                       .toHttp(endpoints)
+                       .withDefaultErrorResponse
     yield ()
 
   override def run: Task[Unit] =
