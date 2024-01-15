@@ -1,6 +1,6 @@
 package com.rockthejvm.reviewboard.http.controllers
 
-import com.rockthejvm.reviewboard.domain.data.{Company, User, UserId, UserToken}
+import com.rockthejvm.reviewboard.domain.data.{Company, CompanyFilter, User, UserId, UserToken}
 import com.rockthejvm.reviewboard.http.requests.CreateCompanyRequest
 import com.rockthejvm.reviewboard.services.{CompanyService, JwtService}
 import com.rockthejvm.reviewboard.syntax.*
@@ -91,6 +91,8 @@ object CompanyControllerSpec extends ZIOSpecDefault:
           ZIO.succeed(Option.when(id == rtjvm.id)(rtjvm))
         override def getBySlug(slug: String): Task[Option[Company]] =
           ZIO.succeed(Option.when(slug == rtjvm.slug)(rtjvm))
+        override def allFilters: Task[CompanyFilter] =
+          ZIO.succeed(CompanyFilter.empty)
   end serviceStub
 
   private val jwtServiceStub =

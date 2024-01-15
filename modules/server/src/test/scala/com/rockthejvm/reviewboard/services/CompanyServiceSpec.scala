@@ -1,7 +1,7 @@
 package com.rockthejvm.reviewboard.services
 
 import collection.mutable
-import com.rockthejvm.reviewboard.domain.data.Company
+import com.rockthejvm.reviewboard.domain.data.{Company, CompanyFilter}
 import com.rockthejvm.reviewboard.http.requests.CreateCompanyRequest
 import com.rockthejvm.reviewboard.repositories.CompanyRepository
 import com.rockthejvm.reviewboard.syntax.*
@@ -99,5 +99,8 @@ object CompanyServiceSpec extends ZIOSpecDefault:
 
       override def getAll: Task[List[Company]] =
         ZIO.succeed(db.values.toList)
+
+      override def uniqueAttributes: Task[CompanyFilter] =
+        ZIO.succeed(CompanyFilter.empty)
   )
 end CompanyServiceSpec
