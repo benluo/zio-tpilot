@@ -1,6 +1,6 @@
 package com.rockthejvm.reviewboard.repositories
 
-import com.rockthejvm.reviewboard.domain.data.Company
+import com.rockthejvm.reviewboard.domain.data.{Company, CompanyFilter}
 import zio.*
 import io.getquill.*
 import io.getquill.jdbczio.Quill
@@ -8,6 +8,7 @@ import io.getquill.jdbczio.Quill
 /** db logic for company listings */
 trait CompanyRepository extends Repository[Company]:
   def getBySlug(slug: String): Task[Option[Company]]
+  def uniqueAttributes: Task[CompanyFilter]
 
 /** implementation of CompanyRepository using quill and postgresql */
 class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends CompanyRepository:
@@ -36,6 +37,14 @@ class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends C
 
   override def getAll: Task[List[Company]] =
     run(query[Company])
+
+  override def uniqueAttributes: Task[CompanyFilter] =
+    for
+      locations  <- run(query[Company].map(_.location).distinct).map(_.flatMap(_.toList))
+      countries  <- run(query[Company].map(_.country).distinct).map(_.flatMap(_.toList))
+      industries <- run(query[Company].map(_.industry).distinct).map(_.flatMap(_.toList))
+      tags       <- run(query[Company].map(_.tags)).map(_.flatten.distinct)
+    yield CompanyFilter(locations, countries, industries, tags)
 
   override def update(id: Long, op: Company => Company): Task[Company] =
     for

@@ -17,6 +17,9 @@ extends Controller with CompanyEndpoints:
   val getAll: ServerEndpoint[Any, Task] =
     getAllEndpoint.serverLogic(_ => service.getAll.either)
 
+  val allFilters: ServerEndpoint[Any, Task] =
+    allFiltersEndpoint.serverLogic(_ => service.allFilters.either)
+
   val getById: ServerEndpoint[Any, Task] =
     getByIdEndpoint.serverLogic: id =>
       ZIO.succeed(id.toLongOption).flatMap:
@@ -24,7 +27,7 @@ extends Controller with CompanyEndpoints:
         case None => service.getBySlug(id).either
 
   override val routes: List[ServerEndpoint[Any, Task]] =
-    List(create, getAll, getById)
+    List(create, getAll, allFilters, getById)
 
 object CompanyController:
   val makeZIO: URIO[CompanyService & JwtService, CompanyController] =
