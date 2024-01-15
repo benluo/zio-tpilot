@@ -11,7 +11,8 @@ object CompaniesPage:
   private val companiesBus = EventBus[List[Company]]()
 
   private def performBackendCall(): Unit =
-    useBackend(_.company.getAllEndpoint(())).emitTo(companiesBus)
+    useBackend(_.company.getAllEndpoint(()))
+      .emitTo(companiesBus)
 
   def apply(): ReactiveHtmlElement[HTMLElement] =
     sectionTag(
@@ -30,7 +31,7 @@ object CompaniesPage:
           cls := "row jvm-recent-companies-body",
           div(
             cls := "col-lg-4",
-            div("TODO filter panel here")
+            FilterPanel()
           ),
           div(
             cls := "col-lg-8",
@@ -39,10 +40,3 @@ object CompaniesPage:
         )
       )
     )
-
-  private val dummyCompany = Company(
-    1L,
-    "dummy-company",
-    "Dummy Company Simple",
-    "https://dummycompany.com"
-  )
