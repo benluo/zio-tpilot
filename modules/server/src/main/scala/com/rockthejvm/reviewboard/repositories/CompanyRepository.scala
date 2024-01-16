@@ -8,6 +8,7 @@ import io.getquill.jdbczio.Quill
 /** db logic for company listings */
 trait CompanyRepository extends Repository[Company]:
   def getBySlug(slug: String): Task[Option[Company]]
+  def search(filter: CompanyFilter): Task[List[Company]]
   def uniqueAttributes: Task[CompanyFilter]
 
 /** implementation of CompanyRepository using quill and postgresql */
@@ -45,6 +46,16 @@ class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends C
       industries <- run(query[Company].map(_.industry).distinct).map(_.flatMap(_.toList))
       tags       <- run(query[Company].map(_.tags)).map(_.flatten.distinct)
     yield CompanyFilter(locations, countries, industries, tags)
+
+  override def search(filter: CompanyFilter): Task[List[Company]] =
+    if filter.isEmpty then getAll
+    else run:
+      query[Company]
+        .filter: company =>
+          liftQuery(filter.locations.toSet).contains(company.location) ||
+            liftQuery(filter.countries.toSet).contains(company.country) ||
+            liftQuery(filter.industries.toSet).contains(company.industry) ||
+            sql"${company.tags} && ${lift(filter.tags)}".asCondition
 
   override def update(id: Long, op: Company => Company): Task[Company] =
     for

@@ -10,6 +10,7 @@ trait CompanyService:
   def create(req: CreateCompanyRequest): Task[Company]
   def getAll: Task[List[Company]]
   def allFilters: Task[CompanyFilter]
+  def search(filter: CompanyFilter): Task[List[Company]]
   def getById(id: Long): Task[Option[Company]]
   def getBySlug(slug: String): Task[Option[Company]]
 
@@ -22,6 +23,9 @@ class CompanyServiceLive private (repo: CompanyRepository) extends CompanyServic
 
   override def allFilters: Task[CompanyFilter] =
     repo.uniqueAttributes
+    
+  override def search(filter: CompanyFilter): Task[List[Company]] =
+    repo.search(filter)
 
   override def getById(id: Long): Task[Option[Company]] =
     repo.getById(id)

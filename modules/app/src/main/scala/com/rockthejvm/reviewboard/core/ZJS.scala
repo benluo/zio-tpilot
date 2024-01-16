@@ -1,6 +1,6 @@
 package com.rockthejvm.reviewboard.core
 
-import com.raquo.laminar.api.L.EventBus
+import com.raquo.laminar.api.L.{EventBus, EventStream}
 import sttp.tapir.Endpoint
 import zio.*
 
@@ -33,6 +33,11 @@ object ZJS:
         implicit unsafe =>
           Runtime.default.unsafe
             .runToFuture(zio.provide(BackendClientLive.configuredLayer))
+
+    def toEventStream: EventStream[A] =
+      val bus = EventBus[A]()
+      emitTo(bus)
+      bus.events
   end extension
 
   extension [I, E <: Throwable, O](endpoint: Endpoint[Unit, I, E, O, Any])

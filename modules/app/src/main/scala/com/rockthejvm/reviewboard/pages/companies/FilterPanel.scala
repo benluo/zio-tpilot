@@ -7,15 +7,47 @@ import com.rockthejvm.reviewboard.core.ZJS.*
 import com.rockthejvm.reviewboard.domain.data.CompanyFilter
 import org.scalajs.dom.HTMLElement
 
-object FilterPanel:
+class FilterPanel:
   private val possibleFilter = Var[CompanyFilter](CompanyFilter.empty)
   private def fetchFilter(): Unit =
-    useBackend(_.company.allFiltersEndpoint(())).map(possibleFilter.set).runJs
+    useBackend(_.company.allFiltersEndpoint(()))
+      .map(possibleFilter.set)
+      .runJs
+
+  private case class CheckValueEvent(groupName: String, value: String, checked: Boolean)
+  private val checkEvents = EventBus[CheckValueEvent]()
+
+  private val applyFiltersClicks = EventBus[Unit]()
+  private val dirty =
+    applyFiltersClicks.events
+      .mapTo(false)
+      .mergeWith(checkEvents.events.mapTo(true))
+
+  private val state: Signal[CompanyFilter] =
+    checkEvents.events
+      .scanLeft(Map[String, Set[String]]()): (acc, event) =>
+        event match
+          case CheckValueEvent(groupName, value, checked) =>
+            if checked then
+              acc + (groupName -> (acc.getOrElse(groupName, Set()) + value))
+            else
+              acc + (groupName -> (acc.getOrElse(groupName, Set()) - value))
+      .map: checkMap =>
+        CompanyFilter(
+          locations = checkMap.getOrElse(GROUP_LOCATIONS, Set()).toList,
+          countries = checkMap.getOrElse(GROUP_COUNTRIES, Set()).toList,
+          industries = checkMap.getOrElse(GROUP_INDUSTRIES, Set()).toList,
+          tags = checkMap.getOrElse(GROUP_TAGS, Set()).toList
+        )
+
 
   private val GROUP_LOCATIONS = "Locations"
   private val GROUP_COUNTRIES = "Countries"
   private val GROUP_INDUSTRIES = "Industries"
   private val GROUP_TAGS = "Tags"
+
+  val triggerFilters: EventStream[CompanyFilter] =
+    applyFiltersClicks.events.withCurrentValueOf(state)
 
   def apply(): ReactiveHtmlElement[HTMLElement] =
     div(
@@ -55,14 +87,7 @@ object FilterPanel:
             filterOptions(GROUP_COUNTRIES, _.countries),
             filterOptions(GROUP_INDUSTRIES, _.industries),
             filterOptions(GROUP_TAGS, _.tags),
-            div(
-              cls := "jvm-accordion-search-btn",
-              button(
-                cls    := "btn btn-primary",
-                `type` := "button",
-                "Apply Filters"
-              )
-            )
+            applyFiltersButton()
           )
         )
       )
@@ -110,6 +135,19 @@ object FilterPanel:
       input(
         cls := "form-check-input",
         `type` := "checkbox",
-        idAttr := s"filter-$groupName-$value"
+        idAttr := s"filter-$groupName-$value",
+        onChange.mapToChecked.map(CheckValueEvent(groupName, value, _)) --> checkEvents
+      )
+    )
+
+  private def applyFiltersButton() =
+    div(
+      cls := "jvm-accordion-search-btn",
+      button(
+        disabled <-- dirty.toSignal(false).map(v => !v),
+        onClick.mapTo(()) --> applyFiltersClicks,
+        cls := "btn btn-primary",
+        `type` := "button",
+        "Apply Filters"
       )
     )

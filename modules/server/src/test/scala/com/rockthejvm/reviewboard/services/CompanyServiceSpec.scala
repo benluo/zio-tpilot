@@ -102,5 +102,8 @@ object CompanyServiceSpec extends ZIOSpecDefault:
 
       override def uniqueAttributes: Task[CompanyFilter] =
         ZIO.succeed(CompanyFilter.empty)
+
+      override def search(filter: CompanyFilter): Task[List[Company]] =
+        ZIO.succeed(db.values.toList)
   )
 end CompanyServiceSpec

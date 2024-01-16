@@ -93,6 +93,8 @@ object CompanyControllerSpec extends ZIOSpecDefault:
           ZIO.succeed(Option.when(slug == rtjvm.slug)(rtjvm))
         override def allFilters: Task[CompanyFilter] =
           ZIO.succeed(CompanyFilter.empty)
+        override def search(filter: CompanyFilter): Task[List[Company]] =
+          ZIO.succeed(List(rtjvm))
   end serviceStub
 
   private val jwtServiceStub =
