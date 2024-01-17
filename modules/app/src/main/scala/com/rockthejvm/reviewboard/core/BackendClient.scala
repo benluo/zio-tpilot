@@ -1,7 +1,7 @@
 package com.rockthejvm.reviewboard.core
 
 import com.rockthejvm.reviewboard.config.BackendClientConfig
-import com.rockthejvm.reviewboard.http.endpoints.CompanyEndpoints
+import com.rockthejvm.reviewboard.http.endpoints.{CompanyEndpoints, UserEndpoints}
 import sttp.capabilities
 import sttp.capabilities.zio.ZioStreams
 import sttp.client3.*
@@ -18,6 +18,7 @@ trait BackendClient:
   protected type EPR[I, E <: Throwable, O] = I => Request[Either[E, O], Any]
   
   val company: CompanyEndpoints = new CompanyEndpoints {}
+  val user: UserEndpoints = new UserEndpoints {}
   
   def endpointRequest[I, E <: Throwable, O](endpoint: EP[I, E, O]): EPR[I, E, O]
 
