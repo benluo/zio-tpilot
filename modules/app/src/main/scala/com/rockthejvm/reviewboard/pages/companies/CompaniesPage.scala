@@ -9,15 +9,16 @@ import org.scalajs.dom.HTMLElement
 
 object CompaniesPage:
   private val filterPanel = new FilterPanel
+
+  private val firstBatch = EventBus[List[Company]]()
   private val companyEvents =
-    useBackend(_.company.getAllEndpoint(()))
-      .toEventStream
-      .mergeWith:
-        filterPanel.triggerFilters.flatMap: newFilter =>
-          useBackend(_.company.searchEndpoint(newFilter)).toEventStream
+    firstBatch.events.mergeWith:
+      filterPanel.triggerFilters.flatMap: newFilter =>
+        useBackend(_.company.searchEndpoint(newFilter)).toEventStream
 
   def apply(): ReactiveHtmlElement[HTMLElement] =
     sectionTag(
+      onMountCallback(_ => useBackend(_.company.getAllEndpoint(())).emitTo(firstBatch)),
       cls := "section-1",
       div(
         cls := "container company-list-hero",
