@@ -5,6 +5,9 @@ import com.rockthejvm.reviewboard.http.requests.CreateReviewRequest
 import com.rockthejvm.reviewboard.repositories.ReviewRepository
 import zio.*
 
+/**
+ * 
+ */
 trait ReviewService:
   def create(req: CreateReviewRequest, userId: Long): Task[Review]
   def getAll: Task[List[Review]]

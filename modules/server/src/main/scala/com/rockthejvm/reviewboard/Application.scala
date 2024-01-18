@@ -10,7 +10,9 @@ import sttp.tapir.server.ziohttp.*
 import zio.*
 import zio.http.Server
 
-/** the entry point for the application */
+/**
+ * Entry point for the server application
+ */
 object Application extends ZIOAppDefault:
   private val serverProgram =
     for

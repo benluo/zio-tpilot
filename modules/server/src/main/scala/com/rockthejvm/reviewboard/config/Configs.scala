@@ -6,6 +6,10 @@ import zio.config.*
 import zio.config.magnolia.*
 import zio.config.typesafe.TypesafeConfig
 
+/**
+ * Wrapper over TypesafeConfig to read config files
+ * and create ZLayers from them
+ */
 object Configs:
   /**
    * provide a Z-Layer from a config file

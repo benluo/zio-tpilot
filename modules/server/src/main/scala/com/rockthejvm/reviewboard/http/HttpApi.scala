@@ -5,16 +5,15 @@ import com.rockthejvm.reviewboard.services.*
 import sttp.tapir.server.ServerEndpoint
 import zio.{Task, URIO}
 
-/** the api of the http layer of the application */
+/**
+ * The api of the http layer of the application
+ */
 object HttpApi:
   private type R = ReviewService & CompanyService & UserService & JwtService
   
   /** a ZIO-wrapped list of all available endpoints */
   val endpointsZIO: URIO[R, List[ServerEndpoint[Any, Task]]] =
-    makeControllers.map(gatherRoutes)
-    
-  private def gatherRoutes(controllers: List[Controller]) =
-    controllers.flatMap(_.routes)
+    makeControllers.map(_.flatMap(_.routes))
 
   private def makeControllers =
     for

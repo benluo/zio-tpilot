@@ -8,15 +8,75 @@ import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
+/**
+ * Service for handling user creation, authentication, etc.
+ */
 trait UserService:
+  /**
+   * Register a new user
+   * @param email the email of the new user
+   * @param password the (non-hashed) password of the new user
+   * @return a task containing the newly created user
+   */
   def registerUser(email: String, password: String): Task[User]
-  def verifyPassword(email: String, password: String): Task[Boolean]
-  def generateToken(email: String, password: String): Task[UserToken]
-  def updatePassword(email: String, oldPassword: String, newPassword: String): Task[User]
-  def deleteUser(email: String, password: String): Task[User]
-  def sendRecoveryToken(email: String): Task[Unit]
-  def recoverFromToken(email: String, token: String, newPassword: String): Task[Boolean]
 
+  /**
+   * Check if a user with a given email and password exists
+   * @param email the email to log in with
+   * @param password the password to log in with
+   * @return a task containing a boolean indicating if the email and password are correct
+   */
+  def verifyPassword(email: String, password: String): Task[Boolean]
+
+  /**
+   * Create a token for a user if their login credentials are correct
+   * @param email the email to log in with
+   * @param password the password to log in with
+   * @return a task containing a UserToken instance if the credentials are correct
+   */
+  def generateToken(email: String, password: String): Task[UserToken]
+
+  /**
+   * Change the password for an existing user
+   * @param email the email address of the user
+   * @param oldPassword the user's current password
+   * @param newPassword the password to change to
+   * @return a task containing the updated user
+   */
+  def updatePassword(email: String, oldPassword: String, newPassword: String): Task[User]
+
+  /**
+   * Delete a user's account
+   * @param email the email of the account
+   * @param password the password of the account
+   * @return a task containing the deleted account
+   */
+  def deleteUser(email: String, password: String): Task[User]
+
+  /**
+   * Send a recovery token email to a user
+   * @param email the user's email to send the recovery email to
+   * @return a task indicating if the email successfully sent
+   */
+  def sendRecoveryToken(email: String): Task[Unit]
+
+  /**
+   * Recover an account by providing an email, recovery token, and new password
+   * @param email the email of the account to recover
+   * @param token a previously generated recovery token
+   * @param newPassword the new password
+   * @return a task containing a boolean indicating if the recovery was successful
+   */
+  def recoverFromToken(email: String, token: String, newPassword: String): Task[Boolean]
+end UserService
+
+/**
+ * Implementation of UserService using other services and repo layers
+ * @param jwtService the service for generating/verifying JSON Web Tokens
+ * @param emailService the service for sending recovery token emails
+ * @param userRepo the repo for creating/editing/deleting user accounts
+ * @param tokenRepo the repo for generating/verifying JSON Web Tokens
+ */
 class UserServiceLive private (
   jwtService: JwtService,
   emailService: EmailService,
@@ -70,6 +130,7 @@ class UserServiceLive private (
         .when(valid)
         .map(_.nonEmpty)
     yield result
+end UserServiceLive
 
 object UserServiceLive:
   private type R = UserRepository & RecoveryTokensRepository & EmailService & JwtService

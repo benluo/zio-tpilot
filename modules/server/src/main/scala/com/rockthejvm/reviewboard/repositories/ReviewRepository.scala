@@ -5,10 +5,29 @@ import zio.*
 import io.getquill.*
 import io.getquill.jdbczio.Quill
 
+/**
+ * Data access layer for reviews
+ */
 trait ReviewRepository extends Repository[Review]:
+  /**
+   * Get reviews for a given company
+   * @param id the company id to search with
+   * @return a task containing all reviews for the given company
+   */
   def getByCompanyId(id: Long): Task[List[Review]]
-  def getByUserId(id: Long): Task[List[Review]]
 
+  /**
+   * Get reviews written by a given user
+   * @param id the user id to search with
+   * @return a task containing all reviews written by the given user
+   */
+  def getByUserId(id: Long): Task[List[Review]]
+end ReviewRepository
+
+/**
+ * Implementation of ReviewRepository with Quill and Postgres
+ * @param quill the quill instance to run queries with
+ */
 class ReviewRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends ReviewRepository:
   import quill.*
   
@@ -56,9 +75,11 @@ class ReviewRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends Re
 
   private def failMsg(method: String, id: Long): Throwable =
     new RuntimeException(s"could not $method missing id: $id")
+end ReviewRepositoryLive
 
 object ReviewRepositoryLive:
   val layer: ZLayer[Quill.Postgres[SnakeCase], Nothing, ReviewRepositoryLive] =
     ZLayer:
       ZIO.service[Quill.Postgres[SnakeCase]]
         .map(new ReviewRepositoryLive(_))
+end ReviewRepositoryLive

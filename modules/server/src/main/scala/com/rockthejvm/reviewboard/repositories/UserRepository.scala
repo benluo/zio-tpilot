@@ -5,9 +5,22 @@ import zio.*
 import io.getquill.*
 import io.getquill.jdbczio.Quill
 
+/**
+ * Data access layer for users
+ */
 trait UserRepository extends Repository[User]:
+  /**
+   * Get user by their email address
+   * @param email the email address to search with
+   * @return a task containing an option of the user with the given email
+   */
   def getByEmail(email: String): Task[Option[User]]
+end UserRepository
 
+/**
+ * Implementation of UserRepository with Quill and Postgres
+ * @param quill the quill instance to run queries with
+ */
 class UserRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends UserRepository:
   import quill.*
 
@@ -39,9 +52,11 @@ class UserRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends User
 
   override def getAll: Task[List[User]] =
     run(query[User])
+end UserRepositoryLive
 
 object UserRepositoryLive:
   val layer: ZLayer[Quill.Postgres[SnakeCase], Nothing, UserRepositoryLive] =
     ZLayer:
       ZIO.service[Quill.Postgres[SnakeCase]]
         .map(new UserRepositoryLive(_))
+end UserRepositoryLive

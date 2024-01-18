@@ -5,13 +5,36 @@ import zio.*
 import io.getquill.*
 import io.getquill.jdbczio.Quill
 
-/** db logic for company listings */
+/**
+ * Data access layer for companies
+ */
 trait CompanyRepository extends Repository[Company]:
+  /**
+   * Get a company by its slug attribute
+   * @param slug the slug to search for
+   * @return a task containing an option for the company with the given slug
+   */
   def getBySlug(slug: String): Task[Option[Company]]
-  def search(filter: CompanyFilter): Task[List[Company]]
-  def uniqueAttributes: Task[CompanyFilter]
 
-/** implementation of CompanyRepository using quill and postgresql */
+  /**
+   * Get companies that satisfy a search/filter criteria
+   * @param filter the attributes to match against companies
+   * @return a task containing the companies that match the filter arguments
+   */
+  def search(filter: CompanyFilter): Task[List[Company]]
+
+  /**
+   * Get all unique/distinct attributes from companies in the table
+   * @return a task containing a CompanyFilter instance populated
+   *         with the attributes found
+   */
+  def uniqueAttributes: Task[CompanyFilter]
+end CompanyRepository
+
+/**
+ * Implementation of CompanyRepository using Quill and Postgres
+ * @param quill the Quill instance to use to run queries
+ */
 class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends CompanyRepository:
   import quill.*
 
@@ -53,9 +76,9 @@ class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends C
       query[Company]
         .filter: company =>
           liftQuery(filter.locations.toSet).contains(company.location) ||
-            liftQuery(filter.countries.toSet).contains(company.country) ||
-            liftQuery(filter.industries.toSet).contains(company.industry) ||
-            sql"${company.tags} && ${lift(filter.tags)}".asCondition
+          liftQuery(filter.countries.toSet).contains(company.country) ||
+          liftQuery(filter.industries.toSet).contains(company.industry) ||
+          sql"${company.tags} && ${lift(filter.tags)}".asCondition
 
   override def update(id: Long, op: Company => Company): Task[Company] =
     for
@@ -79,9 +102,11 @@ class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends C
     
   private def failMsg(method: String, id: Long): Throwable =
     new RuntimeException(s"could not $method missing id: $id")
+end CompanyRepositoryLive
 
 object CompanyRepositoryLive:
   val layer: ZLayer[Quill.Postgres[SnakeCase], Nothing, CompanyRepositoryLive] =
     ZLayer:
       ZIO.service[Quill.Postgres[SnakeCase]]
         .map(new CompanyRepositoryLive(_))
+end CompanyRepositoryLive

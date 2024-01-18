@@ -6,10 +6,33 @@ import zio.*
 import io.getquill.*
 import io.getquill.jdbczio.Quill
 
+/**
+ * Data access layer for password recovery tokens
+ */
 trait RecoveryTokensRepository:
+  /**
+   * Create a new recovery token for an account associated with an email address
+   * @param email the email address to associate with the recovery token
+   * @return a task containing an option of the token created if successful.
+   *         Will be None if there isn't an existing user with the provided email.
+   */
   def getToken(email: String): Task[Option[String]]
-  def checkToken(email: String, token: String): Task[Boolean]
 
+  /**
+   * Check if a given email and recovery token are correct and match
+   * @param email the email to check
+   * @param token the recovery token associated with the email address
+   * @return a task containing a boolean indicating if the email and token match
+   */
+  def checkToken(email: String, token: String): Task[Boolean]
+end RecoveryTokensRepository
+
+/**
+ * An implementation of RecoveryTokensRepository using Quill and Postgres
+ * @param tokensConfig configuration for how to generate recovery tokens
+ * @param quill the quill instance to use to run queries
+ * @param userRepo the repo layer for accessing users
+ */
 class RecoveryTokensRepositoryLive private (
   tokensConfig: RecoveryTokensConfig,
   quill: Quill.Postgres[SnakeCase],
@@ -60,6 +83,7 @@ class RecoveryTokensRepositoryLive private (
     run(
       query[RecoveryToken].filter(row => row.email == lift(email) && row.token == lift(token))
     ).map(_.nonEmpty)
+end RecoveryTokensRepositoryLive
 
 object RecoveryTokensRepositoryLive:
   private type R = UserRepository & Quill.Postgres[SnakeCase.type]
@@ -73,3 +97,4 @@ object RecoveryTokensRepositoryLive:
 
   val configuredLayer: ZLayer[R, Throwable, RecoveryTokensRepository] =
     Configs.makeLayer[RecoveryTokensConfig]("rockthejvm.recoverytokens") >>> layer
+end RecoveryTokensRepositoryLive
