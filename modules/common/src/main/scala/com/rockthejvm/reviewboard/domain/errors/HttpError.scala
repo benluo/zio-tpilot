@@ -3,9 +3,9 @@ package com.rockthejvm.reviewboard.domain.errors
 import sttp.model.StatusCode
 
 case class HttpError(
-  statusCode: StatusCode,
-  message: String,
-  cause: Throwable
+    statusCode: StatusCode,
+    message: String,
+    cause: Throwable
 ) extends RuntimeException(message, cause)
 
 object HttpError:

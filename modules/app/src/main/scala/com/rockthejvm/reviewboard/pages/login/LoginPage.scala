@@ -13,10 +13,10 @@ import org.scalajs.dom.HTMLElement
 import zio.*
 
 case class LoginFormState(
-  email: String = "",
-  password: String = "",
-  upstreamError: Option[String] = None,
-  override val showStatus: Boolean = false
+    email: String = "",
+    password: String = "",
+    upstreamError: Option[String] = None,
+    override val showStatus: Boolean = false
 ) extends FormState:
   private val userEmailError: Option[String] =
     Option.when(!email.matches(Constants.emailRegex))("User email is invalid")
@@ -34,8 +34,7 @@ object LoginPage extends FormPage[LoginFormState]("Log In"):
   override val stateVar = Var(LoginFormState())
 
   private val submitter = Observer[LoginFormState]: state =>
-    if state.hasErrors then
-      stateVar.update(_.copy(showStatus = true))
+    if state.hasErrors then stateVar.update(_.copy(showStatus = true))
     else
       useBackend(_.user.loginEndpoint(LoginRequest(state.email, state.password)))
         .map: userToken =>
@@ -44,7 +43,7 @@ object LoginPage extends FormPage[LoginFormState]("Log In"):
           BrowserNavigation.replaceState("/")
         .tapError: e =>
           ZIO.succeed:
-            stateVar.update(_.copy(showStatus = true, upstreamError = Some(e.getMessage)))
+              stateVar.update(_.copy(showStatus = true, upstreamError = Some(e.getMessage)))
         .runJs
 
   override def renderChildren(): List[ReactiveHtmlElement[HTMLElement]] =

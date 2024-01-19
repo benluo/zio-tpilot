@@ -6,7 +6,7 @@ import scala.scalajs.js.*
 
 object Session:
   private val stateName = "userState"
-  val userState = Var(Option.empty[UserToken])
+  val userState         = Var(Option.empty[UserToken])
 
   def setUserState(token: UserToken): Unit =
     userState.set(Option(token))

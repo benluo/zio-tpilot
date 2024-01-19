@@ -34,7 +34,7 @@ trait ReviewEndpoints extends Endpoints:
       .in("reviews" / path[Long]("id"))
       .get
       .out(jsonBody[Option[Review]])
-    
+
   val getByCompanyIdEndpoint: EP[Long, List[Review]] =
     baseEndpoint
       .tag("reviews")
@@ -43,7 +43,7 @@ trait ReviewEndpoints extends Endpoints:
       .in("reviews" / "company" / path[Long]("id"))
       .get
       .out(jsonBody[List[Review]])
-    
+
   val getByUserIdEndpoint: EP[Long, List[Review]] =
     baseEndpoint
       .tag("reviews")

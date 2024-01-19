@@ -24,7 +24,7 @@ object CompanyCard:
       ),
       action(company)
     )
-    
+
   private def picture(company: Company) =
     img(
       cls := "img-fluid",
@@ -49,9 +49,9 @@ object CompanyCard:
   private def fullLocationString(company: Company) =
     (company.location, company.country) match
       case (Some(l), Some(c)) => s"$l, $c"
-      case (Some(l), None) => l
-      case (None, Some(c)) => c
-      case (None, None) => "Anywhere"
+      case (Some(l), None)    => l
+      case (None, Some(c))    => c
+      case (None, None)       => "Anywhere"
 
   private def action(company: Company) =
     div(

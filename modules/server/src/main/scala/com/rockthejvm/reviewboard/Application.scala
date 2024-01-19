@@ -1,6 +1,11 @@
 package com.rockthejvm.reviewboard
 
-import com.rockthejvm.reviewboard.config.{Configs, EmailServiceConfig, JwtConfig, RecoveryTokensConfig}
+import com.rockthejvm.reviewboard.config.{
+  Configs,
+  EmailServiceConfig,
+  JwtConfig,
+  RecoveryTokensConfig
+}
 import com.rockthejvm.reviewboard.http.HttpApi
 import com.rockthejvm.reviewboard.repositories.*
 import com.rockthejvm.reviewboard.services.*
@@ -10,21 +15,16 @@ import sttp.tapir.server.ziohttp.*
 import zio.*
 import zio.http.Server
 
-/**
- * Entry point for the server application
- */
+/** Entry point for the server application
+  */
 object Application extends ZIOAppDefault:
   private val serverProgram =
     for
       endpoints <- HttpApi.endpointsZIO
-      options   <- ZIO.succeed:
-                     ZioHttpServerOptions
-                       .default
-                       .appendInterceptor(CORSInterceptor.default)
-      _         <- Server.serve:
-                     ZioHttpInterpreter(options)
-                       .toHttp(endpoints)
-                       .withDefaultErrorResponse
+      options <- ZIO.succeed:
+          ZioHttpServerOptions.default.appendInterceptor(CORSInterceptor.default)
+      _ <- Server.serve:
+          ZioHttpInterpreter(options).toHttp(endpoints).withDefaultErrorResponse
     yield ()
 
   override def run: Task[Unit] =

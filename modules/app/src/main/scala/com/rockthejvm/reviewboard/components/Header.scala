@@ -22,22 +22,22 @@ object Header:
               cls := "container",
               Logo(),
               button(
-                cls := "navbar-toggler",
-                `type` := "button",
+                cls                                         := "navbar-toggler",
+                tpe                                         := "button",
                 htmlAttr("data-bs-toggle", StringAsIsCodec) := "collapse",
                 htmlAttr("data-bs-target", StringAsIsCodec) := "#navbarNav",
-                htmlAttr("aria-controls", StringAsIsCodec) := "navbarNav",
-                htmlAttr("aria-expanded", StringAsIsCodec) := "false",
-                htmlAttr("aria-label", StringAsIsCodec) := "Toggle navigation",
+                htmlAttr("aria-controls", StringAsIsCodec)  := "navbarNav",
+                htmlAttr("aria-expanded", StringAsIsCodec)  := "false",
+                htmlAttr("aria-label", StringAsIsCodec)     := "Toggle navigation",
                 span(cls := "navbar-toggler-icon")
               ),
               div(
-                cls := "collapse navbar-collapse",
+                cls    := "collapse navbar-collapse",
                 idAttr := "navbarNav",
                 ul(
                   cls := "navbar-nav ms-auto menu align-center expanded text-center SMN_effect-3",
                   div(
-                    cls := "collapse navbar-collapse",
+                    cls    := "collapse navbar-collapse",
                     idAttr := "navbarNav",
                     NavLinks()
                   )
@@ -52,7 +52,7 @@ object Header:
   private def Logo() =
     a(
       href := "/",
-      cls := "navbar-brand",
+      cls  := "navbar-brand",
       img(
         cls := "home-logo",
         src := Constants.logoImage,

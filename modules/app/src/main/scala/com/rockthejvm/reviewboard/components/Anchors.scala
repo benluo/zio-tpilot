@@ -6,9 +6,9 @@ import org.scalajs.dom.HTMLAnchorElement
 
 object Anchors:
   def navLink(
-    text: String,
-    location: String,
-    cssClass: String = ""
+      text: String,
+      location: String,
+      cssClass: String = ""
   ): ReactiveHtmlElement[HTMLAnchorElement] =
     a(
       href := location,

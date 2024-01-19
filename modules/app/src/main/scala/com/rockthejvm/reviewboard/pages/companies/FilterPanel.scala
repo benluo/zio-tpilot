@@ -28,10 +28,8 @@ class FilterPanel:
       .scanLeft(Map[String, Set[String]]()): (acc, event) =>
         event match
           case CheckValueEvent(groupName, value, checked) =>
-            if checked then
-              acc + (groupName -> (acc.getOrElse(groupName, Set()) + value))
-            else
-              acc + (groupName -> (acc.getOrElse(groupName, Set()) - value))
+            if checked then acc + (groupName -> (acc.getOrElse(groupName, Set()) + value))
+            else acc + (groupName            -> (acc.getOrElse(groupName, Set()) - value))
       .map: checkMap =>
         CompanyFilter(
           locations = checkMap.getOrElse(GROUP_LOCATIONS, Set()).toList,
@@ -40,11 +38,10 @@ class FilterPanel:
           tags = checkMap.getOrElse(GROUP_TAGS, Set()).toList
         )
 
-
-  private val GROUP_LOCATIONS = "Locations"
-  private val GROUP_COUNTRIES = "Countries"
+  private val GROUP_LOCATIONS  = "Locations"
+  private val GROUP_COUNTRIES  = "Countries"
   private val GROUP_INDUSTRIES = "Industries"
-  private val GROUP_TAGS = "Tags"
+  private val GROUP_TAGS       = "Tags"
 
   val triggerFilters: EventStream[CompanyFilter] =
     applyFiltersClicks.events.withCurrentValueOf(state)
@@ -128,12 +125,12 @@ class FilterPanel:
     div(
       cls := "form-check",
       label(
-        cls := "form-check-label",
+        cls   := "form-check-label",
         forId := s"filter-$groupName-$value",
         value
       ),
       input(
-        cls := "form-check-input",
+        cls    := "form-check-input",
         `type` := "checkbox",
         idAttr := s"filter-$groupName-$value",
         onChange.mapToChecked.map(CheckValueEvent(groupName, value, _)) --> checkEvents
@@ -146,7 +143,7 @@ class FilterPanel:
       button(
         disabled <-- dirty.toSignal(false).map(v => !v),
         onClick.mapTo(()) --> applyFiltersClicks,
-        cls := "btn btn-primary",
+        cls    := "btn btn-primary",
         `type` := "button",
         "Apply Filters"
       )

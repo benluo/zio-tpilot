@@ -9,25 +9,26 @@ import sttp.tapir.server.ServerEndpoint
 import zio.*
 
 class UserController private (userService: UserService, jwtService: JwtService)
-extends Controller with UserEndpoints:
+    extends Controller
+    with UserEndpoints:
   val create: ServerEndpoint[Any, Task] =
     createUserEndpoint.serverLogic: req =>
-      userService
-        .registerUser(req.email, req.password)
-        .map(user => UserResponse(user.email))
-        .either
+        userService
+          .registerUser(req.email, req.password)
+          .map(user => UserResponse(user.email))
+          .either
 
   val login: ServerEndpoint[Any, Task] =
     loginEndpoint.serverLogic: req =>
-      userService
-        .generateToken(req.email, req.password)
-        .either
+        userService
+          .generateToken(req.email, req.password)
+          .either
 
   val changePassword: ServerEndpoint[Any, Task] =
     updatePasswordEndpoint
       .serverSecurityLogic[UserId, Task](jwtService.verifyToken(_).either)
-      .serverLogic:
-        _ => req =>
+      .serverLogic: _ =>
+        req =>
           userService
             .updatePassword(req.email, req.oldPassword, req.newPassword)
             .map(user => UserResponse(user.email))
@@ -36,8 +37,8 @@ extends Controller with UserEndpoints:
   val delete: ServerEndpoint[Any, Task] =
     deleteEndpoint
       .serverSecurityLogic[UserId, Task](jwtService.verifyToken(_).either)
-      .serverLogic:
-        _ => req =>
+      .serverLogic: _ =>
+        req =>
           userService
             .deleteUser(req.email, req.password)
             .map(user => UserResponse(user.email))
@@ -68,4 +69,3 @@ object UserController:
       userService <- ZIO.service[UserService]
       jwtService  <- ZIO.service[JwtService]
     yield UserController(userService, jwtService)
-    

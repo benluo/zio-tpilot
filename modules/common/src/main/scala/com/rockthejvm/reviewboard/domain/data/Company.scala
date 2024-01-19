@@ -4,15 +4,15 @@ import zio.json.JsonCodec
 
 /** A company listing */
 final case class Company(
-  id: Long,
-  slug: String,
-  name: String,
-  url: String,
-  location: Option[String] = None,
-  country: Option[String] = None,
-  industry: Option[String] = None,
-  image: Option[String] = None,
-  tags: List[String] = Nil
+    id: Long,
+    slug: String,
+    name: String,
+    url: String,
+    location: Option[String] = None,
+    country: Option[String] = None,
+    industry: Option[String] = None,
+    image: Option[String] = None,
+    tags: List[String] = Nil
 ) derives JsonCodec
 
 object Company:

@@ -6,13 +6,13 @@ import zio.json.JsonCodec
 import java.time.Instant
 
 final case class CreateReviewRequest(
-  companyId: Long,
-  management: Int,
-  culture: Int,
-  salary: Int,
-  benefits: Int,
-  wouldRecommend: Int,
-  review: String
+    companyId: Long,
+    management: Int,
+    culture: Int,
+    salary: Int,
+    benefits: Int,
+    wouldRecommend: Int,
+    review: String
 ) derives JsonCodec:
   def toReview(id: Long, userId: Long): Review =
     Review(
@@ -28,4 +28,3 @@ final case class CreateReviewRequest(
       Instant.now(),
       Instant.now()
     )
-  

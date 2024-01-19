@@ -6,16 +6,16 @@ import sttp.tapir.server.ServerEndpoint
 import zio.*
 
 class ReviewController private (reviewService: ReviewService, jwtService: JwtService)
-extends Controller with ReviewEndpoints:
+    extends Controller
+    with ReviewEndpoints:
   val create: ServerEndpoint[Any, Task] =
     createEndpoint
       .serverSecurityLogic(jwtService.verifyToken(_).either)
-      .serverLogic:
-        userId =>
-          reviewReq =>
-            reviewService
-              .create(reviewReq, userId.id)
-              .either
+      .serverLogic: userId =>
+        reviewReq =>
+          reviewService
+            .create(reviewReq, userId.id)
+            .either
 
   val getAll: ServerEndpoint[Any, Task] =
     getAllEndpoint.serverLogic(_ => reviewService.getAll.either)
@@ -28,7 +28,7 @@ extends Controller with ReviewEndpoints:
 
   val getByUserId: ServerEndpoint[Any, Task] =
     getByUserIdEndpoint.serverLogic(reviewService.getByUserId(_).either)
-  
+
   override val routes: List[ServerEndpoint[Any, Task]] =
     List(create, getAll, getById, getByCompanyId, getByUserId)
 
@@ -38,4 +38,3 @@ object ReviewController:
       reviewService <- ZIO.service[ReviewService]
       jwtService    <- ZIO.service[JwtService]
     yield ReviewController(reviewService, jwtService)
-    

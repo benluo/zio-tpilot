@@ -16,8 +16,8 @@ object TapirDemo extends ZIOAppDefault:
     .name("simple")
     .description("simplest endpoint possible")
     // ^^ for documentation
-    .get // method
-    .in("simple") // path
+    .get                    // method
+    .in("simple")           // path
     .out(plainBody[String]) // output
     .serverLogicSuccess[Task](_ => ZIO.succeed("All good!"))
 
@@ -41,11 +41,12 @@ object TapirDemo extends ZIOAppDefault:
     .post
     .in(jsonBody[CreateJobRequest])
     .out(jsonBody[Job])
-    .serverLogicSuccess[Task](req => ZIO.succeed:
-      val newId = db.keys.max + 1
-      val newJob = Job(newId, req.title, req.url, req.company)
-      db += (newId -> newJob)
-      newJob
+    .serverLogicSuccess[Task](req =>
+      ZIO.succeed:
+          val newId  = db.keys.max + 1
+          val newJob = Job(newId, req.title, req.url, req.company)
+          db += (newId -> newJob)
+          newJob
     )
 
   // get by id
@@ -73,7 +74,6 @@ object TapirDemo extends ZIOAppDefault:
     .withDefaultErrorResponse
 
   val serverProgram = Server.serve(biggerApp)
-
 
   override def run = serverProgram.provide(
     Server.default // without other configs should start at 0.0.0.0:8080

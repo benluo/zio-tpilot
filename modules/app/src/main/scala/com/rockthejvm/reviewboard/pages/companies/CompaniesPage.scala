@@ -13,8 +13,8 @@ object CompaniesPage:
   private val firstBatch = EventBus[List[Company]]()
   private val companyEvents =
     firstBatch.events.mergeWith:
-      filterPanel.triggerFilters.flatMap: newFilter =>
-        useBackend(_.company.searchEndpoint(newFilter)).toEventStream
+        filterPanel.triggerFilters.flatMap: newFilter =>
+            useBackend(_.company.searchEndpoint(newFilter)).toEventStream
 
   def apply(): ReactiveHtmlElement[HTMLElement] =
     sectionTag(

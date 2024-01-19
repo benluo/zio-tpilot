@@ -8,12 +8,13 @@ import zio.*
 
 /** a controller that implements handling logic for company endpoints */
 class CompanyController private (service: CompanyService, jwtService: JwtService)
-extends Controller with CompanyEndpoints:
+    extends Controller
+    with CompanyEndpoints:
   val create: ServerEndpoint[Any, Task] =
     createEndpoint
       .serverSecurityLogic[UserId, Task](jwtService.verifyToken(_).either)
       .serverLogic(_ => service.create(_).either)
-    
+
   val getAll: ServerEndpoint[Any, Task] =
     getAllEndpoint.serverLogic(_ => service.getAll.either)
 
@@ -25,9 +26,11 @@ extends Controller with CompanyEndpoints:
 
   val getById: ServerEndpoint[Any, Task] =
     getByIdEndpoint.serverLogic: id =>
-      ZIO.succeed(id.toLongOption).flatMap:
-        case Some(value) => service.getById(value).either
-        case None => service.getBySlug(id).either
+        ZIO
+          .succeed(id.toLongOption)
+          .flatMap:
+            case Some(value) => service.getById(value).either
+            case None        => service.getBySlug(id).either
 
   override val routes: List[ServerEndpoint[Any, Task]] =
     List(create, getAll, allFilters, search, getById)

@@ -16,13 +16,16 @@ object Router:
         div(
           cls := "container-fluid",
           (pathEnd | path("companies")):
-            CompaniesPage(),
+              CompaniesPage()
+          ,
           path("login"):
-            LoginPage(),
+              LoginPage()
+          ,
           path("signup"):
-            SignUpPage(),
+              SignUpPage()
+          ,
           noneMatched:
-            NotFoundPage()
+              NotFoundPage()
         )
       )
     )

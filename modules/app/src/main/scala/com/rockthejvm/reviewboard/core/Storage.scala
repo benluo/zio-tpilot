@@ -11,6 +11,6 @@ object Storage:
     Option(dom.window.localStorage.getItem(key))
       .filter(_.nonEmpty)
       .flatMap(decoder.decodeJson(_).toOption)
-    
+
   def remove(key: String): Unit =
     dom.window.localStorage.removeItem(key)

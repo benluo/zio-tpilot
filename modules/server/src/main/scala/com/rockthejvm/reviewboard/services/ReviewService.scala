@@ -5,16 +5,13 @@ import com.rockthejvm.reviewboard.http.requests.CreateReviewRequest
 import com.rockthejvm.reviewboard.repositories.ReviewRepository
 import zio.*
 
-/**
- * 
- */
 trait ReviewService:
   def create(req: CreateReviewRequest, userId: Long): Task[Review]
   def getAll: Task[List[Review]]
   def getById(id: Long): Task[Option[Review]]
   def getByCompanyId(id: Long): Task[List[Review]]
   def getByUserId(id: Long): Task[List[Review]]
-  
+
 class ReviewServiceLive private (repo: ReviewRepository) extends ReviewService:
   override def create(req: CreateReviewRequest, userId: Long): Task[Review] =
     repo.create(req.toReview(-1L, userId))
@@ -30,4 +27,4 @@ class ReviewServiceLive private (repo: ReviewRepository) extends ReviewService:
 object ReviewServiceLive:
   val layer: ZLayer[ReviewRepository, Nothing, ReviewServiceLive] =
     ZLayer:
-      ZIO.service[ReviewRepository].map(new ReviewServiceLive(_))
+        ZIO.service[ReviewRepository].map(new ReviewServiceLive(_))

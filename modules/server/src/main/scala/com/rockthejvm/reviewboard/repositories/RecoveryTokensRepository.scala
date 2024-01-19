@@ -6,37 +6,41 @@ import zio.*
 import io.getquill.*
 import io.getquill.jdbczio.Quill
 
-/**
- * Data access layer for password recovery tokens
- */
+/** Data access layer for password recovery tokens
+  */
 trait RecoveryTokensRepository:
-  /**
-   * Create a new recovery token for an account associated with an email address
-   * @param email the email address to associate with the recovery token
-   * @return a task containing an option of the token created if successful.
-   *         Will be None if there isn't an existing user with the provided email.
-   */
+  /** Create a new recovery token for an account associated with an email address
+    * @param email
+    *   the email address to associate with the recovery token
+    * @return
+    *   a task containing an option of the token created if successful. Will be None if there isn't
+    *   an existing user with the provided email.
+    */
   def getToken(email: String): Task[Option[String]]
 
-  /**
-   * Check if a given email and recovery token are correct and match
-   * @param email the email to check
-   * @param token the recovery token associated with the email address
-   * @return a task containing a boolean indicating if the email and token match
-   */
+  /** Check if a given email and recovery token are correct and match
+    * @param email
+    *   the email to check
+    * @param token
+    *   the recovery token associated with the email address
+    * @return
+    *   a task containing a boolean indicating if the email and token match
+    */
   def checkToken(email: String, token: String): Task[Boolean]
 end RecoveryTokensRepository
 
-/**
- * An implementation of RecoveryTokensRepository using Quill and Postgres
- * @param tokensConfig configuration for how to generate recovery tokens
- * @param quill the quill instance to use to run queries
- * @param userRepo the repo layer for accessing users
- */
+/** An implementation of RecoveryTokensRepository using Quill and Postgres
+  * @param tokensConfig
+  *   configuration for how to generate recovery tokens
+  * @param quill
+  *   the quill instance to use to run queries
+  * @param userRepo
+  *   the repo layer for accessing users
+  */
 class RecoveryTokensRepositoryLive private (
-  tokensConfig: RecoveryTokensConfig,
-  quill: Quill.Postgres[SnakeCase],
-  userRepo: UserRepository
+    tokensConfig: RecoveryTokensConfig,
+    quill: Quill.Postgres[SnakeCase],
+    userRepo: UserRepository
 ) extends RecoveryTokensRepository:
   import quill.*
 
@@ -49,8 +53,8 @@ class RecoveryTokensRepositoryLive private (
 
   private def makeFreshToken(email: String): Task[String] =
     findToken(email).flatMap:
-      case Some(_) => replaceToken(email)
-      case None => generateToken(email)
+        case Some(_) => replaceToken(email)
+        case None    => generateToken(email)
 
   private def findToken(email: String): Task[Option[String]] =
     run(query[RecoveryToken].filter(_.email == lift(email))).map(_.headOption.map(_.token))
@@ -61,22 +65,26 @@ class RecoveryTokensRepositoryLive private (
   private def replaceToken(email: String): Task[String] =
     for
       token <- randomUppercaseString(8)
-      entry <- ZIO.attempt(RecoveryToken(email, token, java.lang.System.currentTimeMillis() + tokensConfig.duration))
-      _     <- run(query[RecoveryToken].updateValue(lift(entry)))
+      entry <- ZIO.attempt(
+        RecoveryToken(email, token, java.lang.System.currentTimeMillis() + tokensConfig.duration)
+      )
+      _ <- run(query[RecoveryToken].updateValue(lift(entry)))
     yield token
 
   private def generateToken(email: String): Task[String] =
     for
       token <- randomUppercaseString(8)
-      entry <- ZIO.attempt(RecoveryToken(email, token, java.lang.System.currentTimeMillis() + tokensConfig.duration))
-      _     <- run(query[RecoveryToken].insertValue(lift(entry)))
+      entry <- ZIO.attempt(
+        RecoveryToken(email, token, java.lang.System.currentTimeMillis() + tokensConfig.duration)
+      )
+      _ <- run(query[RecoveryToken].insertValue(lift(entry)))
     yield token
 
   override def getToken(email: String): Task[Option[String]] =
     userRepo
       .getByEmail(email)
       .flatMap:
-        case None => ZIO.none
+        case None    => ZIO.none
         case Some(_) => makeFreshToken(email).map(Some(_))
 
   override def checkToken(email: String, token: String): Task[Boolean] =
@@ -89,11 +97,11 @@ object RecoveryTokensRepositoryLive:
   private type R = UserRepository & Quill.Postgres[SnakeCase.type]
   val layer: ZLayer[R & RecoveryTokensConfig, Nothing, RecoveryTokensRepositoryLive] =
     ZLayer:
-      for
-        config   <- ZIO.service[RecoveryTokensConfig]
-        quill    <- ZIO.service[Quill.Postgres[SnakeCase.type]]
-        userRepo <- ZIO.service[UserRepository]
-      yield RecoveryTokensRepositoryLive(config, quill, userRepo)
+        for
+          config   <- ZIO.service[RecoveryTokensConfig]
+          quill    <- ZIO.service[Quill.Postgres[SnakeCase.type]]
+          userRepo <- ZIO.service[UserRepository]
+        yield RecoveryTokensRepositoryLive(config, quill, userRepo)
 
   val configuredLayer: ZLayer[R, Throwable, RecoveryTokensRepository] =
     Configs.makeLayer[RecoveryTokensConfig]("rockthejvm.recoverytokens") >>> layer

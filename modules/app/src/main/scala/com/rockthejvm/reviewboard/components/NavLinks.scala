@@ -11,12 +11,12 @@ object NavLinks:
     ul(
       cls := "navbar-nav ms-auto menu align-center expanded text-center SMN_effect-3",
       children <-- Session.userState.signal.map: maybeToken =>
-        links(maybeToken).map:
-          case (text, location) =>
-            li(
-              cls := "nav-item",
-              Anchors.navLink(text, location, "jvm-item")
-            )
+          links(maybeToken).map:
+              case (text, location) =>
+                li(
+                  cls := "nav-item",
+                  Anchors.navLink(text, location, "jvm-item")
+                )
     )
 
   private val constantLinks = List("Companies" -> "/companies")

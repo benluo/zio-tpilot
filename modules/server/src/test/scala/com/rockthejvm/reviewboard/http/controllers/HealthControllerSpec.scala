@@ -16,17 +16,17 @@ object HealthControllerSpec extends ZIOSpecDefault:
   override def spec: Spec[TestEnvironment with Scope, Any] =
     suite("HealthControllerSpec")(
       test("health check"):
-        val program = for
-          controller <- HealthController.makeZIO
-          endpoint <- ZIO.succeed(controller.health)
-          backendStub <- ZIO.succeed:
-            TapirStubInterpreter(SttpBackendStub(MonadError[Task]))
-              .whenServerEndpointRunLogic(endpoint)
-              .backend()
-          response <- basicRequest.get(uri"/health").send(backendStub)
-        yield response.body
+          val program = for
+            controller <- HealthController.makeZIO
+            endpoint   <- ZIO.succeed(controller.health)
+            backendStub <- ZIO.succeed:
+                TapirStubInterpreter(SttpBackendStub(MonadError[Task]))
+                  .whenServerEndpointRunLogic(endpoint)
+                  .backend()
+            response <- basicRequest.get(uri"/health").send(backendStub)
+          yield response.body
 
-        program.assert("works")(_.toOption.contains("All good!"))
+          program.assert("works")(_.toOption.contains("All good!"))
     )
   end spec
 
