@@ -4,6 +4,8 @@ import com.raquo.laminar.api.L.{EventBus, EventStream}
 import sttp.tapir.Endpoint
 import zio.*
 
+import scala.annotation.targetName
+
 /** interop-layer for using tapir/ZIO inside laminar components */
 object ZJS:
   val useBackend: ZIO.ServiceWithZIOPartiallyApplied[BackendClient] =
@@ -47,4 +49,19 @@ object ZJS:
       ZIO
         .service[BackendClient]
         .flatMap(_.endpointRequestZIO(endpoint)(payload))
+        .provide(BackendClientLive.configuredLayer)
+
+  extension [I, E <: Throwable, O](endpoint: Endpoint[String, I, E, O, Any])
+    /** make a request to the secure endpoint with a given payload
+      *
+      * @param payload
+      *   the request payload
+      * @return
+      *   a ZIO task wrapping the response
+      */
+    @targetName("applySecure")
+    def apply(payload: I): Task[O] =
+      ZIO
+        .service[BackendClient]
+        .flatMap(_.secureEndpointRequestZIO(endpoint)(payload))
         .provide(BackendClientLive.configuredLayer)
