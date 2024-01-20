@@ -21,3 +21,7 @@ object Session:
 
     // set existing token
     userState.set(Storage.get[UserToken](stateName))
+
+  def clearUserState(): Unit =
+    userState.set(Option.empty)
+    Storage.remove(stateName)
