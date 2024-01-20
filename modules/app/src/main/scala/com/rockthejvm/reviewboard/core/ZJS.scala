@@ -15,22 +15,20 @@ object ZJS:
       *   the event bus to emit to
       */
     def emitTo(eventBus: EventBus[A]): Unit =
-      Unsafe.unsafe:
-        implicit unsafe =>
-          Runtime.default.unsafe.fork:
-            zio
-              .tap(result => ZIO.attempt(eventBus.emit(result)))
-              .provide(BackendClientLive.configuredLayer)
+      Unsafe.unsafe: unsafe ?=>
+        Runtime.default.unsafe.fork:
+          zio
+            .tap(result => ZIO.attempt(eventBus.emit(result)))
+            .provide(BackendClientLive.configuredLayer)
 
     /** run the ZIO effect as an async js call
       * @return
       *   the future/promise of the result
       */
     def runJs: CancelableFuture[A] =
-      Unsafe.unsafe:
-        implicit unsafe =>
-          Runtime.default.unsafe
-            .runToFuture(zio.provide(BackendClientLive.configuredLayer))
+      Unsafe.unsafe: unsafe ?=>
+        Runtime.default.unsafe
+          .runToFuture(zio.provide(BackendClientLive.configuredLayer))
 
     def toEventStream: EventStream[A] =
       val bus = EventBus[A]()
