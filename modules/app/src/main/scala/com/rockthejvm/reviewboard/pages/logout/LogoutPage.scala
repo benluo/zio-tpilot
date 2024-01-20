@@ -17,7 +17,7 @@ object LogoutPage extends FormPage[LogoutPageState]("Log Out"):
     List(
       div(
         onMountCallback(_ => Session.clearUserState()),
-        cls := "logout-status",
+        cls := "centered-text",
         "You have been successfully logged out."
       )
     )
