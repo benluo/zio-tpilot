@@ -27,4 +27,4 @@ class ReviewServiceLive private (repo: ReviewRepository) extends ReviewService:
 object ReviewServiceLive:
   val layer: ZLayer[ReviewRepository, Nothing, ReviewServiceLive] =
     ZLayer:
-        ZIO.service[ReviewRepository].map(new ReviewServiceLive(_))
+      ZIO.service[ReviewRepository].map(new ReviewServiceLive(_))

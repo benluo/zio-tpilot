@@ -38,14 +38,28 @@ object SignUpPage extends FormPage[SignUpFormState]("Sign Up"):
   private val submitter = Observer[SignUpFormState]: state =>
     if state.hasErrors then stateVar.update(_.copy(showStatus = true))
     else
-      useBackend(_.user.createUserEndpoint(RegisterUserRequest(state.email, state.password)))
+      useBackend(
+        _.user.createUserEndpoint(
+          RegisterUserRequest(state.email, state.password)
+        )
+      )
         .map: _ =>
           stateVar
-            .update(_.copy(showStatus = true, upstreamStatus = Some(Right("Account created!"))))
+            .update(
+              _.copy(
+                showStatus = true,
+                upstreamStatus = Some(Right("Account created!"))
+              )
+            )
         .tapError: e =>
           ZIO.succeed:
-              stateVar
-                .update(_.copy(showStatus = true, upstreamStatus = Some(Left(e.getMessage))))
+            stateVar
+              .update(
+                _.copy(
+                  showStatus = true,
+                  upstreamStatus = Some(Left(e.getMessage))
+                )
+              )
         .runJs
 
   override def renderChildren(): List[ReactiveHtmlElement[HTMLElement]] =
@@ -64,7 +78,8 @@ object SignUpPage extends FormPage[SignUpFormState]("Sign Up"):
         "password",
         true,
         "Your password",
-        (s, p) => s.copy(password = p, showStatus = false, upstreamStatus = None)
+        (s, p) =>
+          s.copy(password = p, showStatus = false, upstreamStatus = None)
       ),
       renderInput(
         "Confirm Password",
@@ -72,7 +87,8 @@ object SignUpPage extends FormPage[SignUpFormState]("Sign Up"):
         "password",
         true,
         "Your password",
-        (s, p) => s.copy(confirmPassword = p, showStatus = false, upstreamStatus = None)
+        (s, p) =>
+          s.copy(confirmPassword = p, showStatus = false, upstreamStatus = None)
       ),
       button(
         tpe := "button",

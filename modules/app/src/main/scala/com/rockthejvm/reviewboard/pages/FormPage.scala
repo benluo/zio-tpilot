@@ -6,8 +6,7 @@ import com.rockthejvm.reviewboard.common.Constants
 import org.scalajs.dom
 import org.scalajs.dom.HTMLElement
 
-/** State of a user-filled form
-  */
+/** State of a user-filled form */
 trait FormState:
   /** A list of options of errors that can occur */
   def errorList: List[Option[String]]
@@ -82,10 +81,10 @@ abstract class FormPage[S <: FormState](title: String):
 
   private def renderStatus(status: Option[Either[String, String]]) =
     status.map:
-        case Left(err) =>
-          div(cls := "page-status-errors", err)
-        case Right(msg) =>
-          div(cls := "page-status-success", msg)
+      case Left(err) =>
+        div(cls := "page-status-errors", err)
+      case Right(msg) =>
+        div(cls := "page-status-success", msg)
 
   /** Render a form input element
     * @param name

@@ -1,7 +1,10 @@
 package com.rockthejvm.reviewboard.core
 
 import com.rockthejvm.reviewboard.config.BackendClientConfig
-import com.rockthejvm.reviewboard.http.endpoints.{CompanyEndpoints, UserEndpoints}
+import com.rockthejvm.reviewboard.http.endpoints.{
+  CompanyEndpoints,
+  UserEndpoints
+}
 import sttp.capabilities
 import sttp.capabilities.zio.ZioStreams
 import sttp.client3.*
@@ -10,8 +13,7 @@ import sttp.tapir.Endpoint
 import sttp.tapir.client.sttp.SttpClientInterpreter
 import zio.*
 
-/** A facade for making requests to tapir endpoints on the backend
-  */
+/** A facade for making requests to tapir endpoints on the backend */
 trait BackendClient:
   protected type EP[I, E <: Throwable, O]  = Endpoint[Unit, I, E, O, Any]
   protected type EPR[I, E <: Throwable, O] = I => Request[Either[E, O], Any]
@@ -35,14 +37,18 @@ trait BackendClient:
     * @return
     *   a ZIO task wrapping the response
     */
-  def endpointRequestZIO[I, E <: Throwable, O](endpoint: EP[I, E, O])(payload: I): Task[O]
+  def endpointRequestZIO[I, E <: Throwable, O](endpoint: EP[I, E, O])(
+      payload: I
+  ): Task[O]
 
 class BackendClientLive private (
     backend: SttpBackend[zio.Task, ZioStreams & capabilities.WebSockets],
     interpreter: SttpClientInterpreter,
     config: BackendClientConfig
 ) extends BackendClient:
-  override def endpointRequest[I, E <: Throwable, O](endpoint: EP[I, E, O]): EPR[I, E, O] =
+  override def endpointRequest[I, E <: Throwable, O](
+      endpoint: EP[I, E, O]
+  ): EPR[I, E, O] =
     interpreter
       .toRequestThrowDecodeFailures(endpoint, config.uri)
 
@@ -56,11 +62,12 @@ class BackendClientLive private (
 
 object BackendClientLive:
   val layer = ZLayer:
-      for
-        backend     <- ZIO.service[SttpBackend[Task, ZioStreams & capabilities.WebSockets]]
-        interpreter <- ZIO.service[SttpClientInterpreter]
-        config      <- ZIO.service[BackendClientConfig]
-      yield BackendClientLive(backend, interpreter, config)
+    for
+      backend <- ZIO
+        .service[SttpBackend[Task, ZioStreams & capabilities.WebSockets]]
+      interpreter <- ZIO.service[SttpClientInterpreter]
+      config      <- ZIO.service[BackendClientConfig]
+    yield BackendClientLive(backend, interpreter, config)
 
   val configuredLayer: ZLayer[Any, Nothing, BackendClient] =
     ZLayer.succeed(FetchZioBackend()) ++

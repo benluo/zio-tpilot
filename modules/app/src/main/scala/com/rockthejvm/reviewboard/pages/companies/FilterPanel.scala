@@ -14,7 +14,11 @@ class FilterPanel:
       .map(possibleFilter.set)
       .runJs
 
-  private case class CheckValueEvent(groupName: String, value: String, checked: Boolean)
+  private case class CheckValueEvent(
+      groupName: String,
+      value: String,
+      checked: Boolean
+  )
   private val checkEvents = EventBus[CheckValueEvent]()
 
   private val applyFiltersClicks = EventBus[Unit]()
@@ -28,8 +32,9 @@ class FilterPanel:
       .scanLeft(Map[String, Set[String]]()): (acc, event) =>
         event match
           case CheckValueEvent(groupName, value, checked) =>
-            if checked then acc + (groupName -> (acc.getOrElse(groupName, Set()) + value))
-            else acc + (groupName            -> (acc.getOrElse(groupName, Set()) - value))
+            if checked then
+              acc + (groupName    -> (acc.getOrElse(groupName, Set()) + value))
+            else acc + (groupName -> (acc.getOrElse(groupName, Set()) - value))
       .map: checkMap =>
         CompanyFilter(
           locations = checkMap.getOrElse(GROUP_LOCATIONS, Set()).toList,
@@ -57,9 +62,9 @@ class FilterPanel:
           cls    := "accordion-header",
           idAttr := "flush-headingOne",
           button(
-            cls                                         := "accordion-button",
-            idAttr                                      := "accordion-search-filter",
-            `type`                                      := "button",
+            cls    := "accordion-button",
+            idAttr := "accordion-search-filter",
+            `type` := "button",
             htmlAttr("data-bs-toggle", StringAsIsCodec) := "collapse",
             htmlAttr("data-bs-target", StringAsIsCodec) := "#flush-collapseOne",
             htmlAttr("aria-expanded", StringAsIsCodec)  := "true",
@@ -74,10 +79,13 @@ class FilterPanel:
           )
         ),
         div(
-          cls                                          := "accordion-collapse collapse show",
-          idAttr                                       := "flush-collapseOne",
+          cls    := "accordion-collapse collapse show",
+          idAttr := "flush-collapseOne",
           htmlAttr("aria-labelledby", StringAsIsCodec) := "flush-headingOne",
-          htmlAttr("data-bs-parent", StringAsIsCodec)  := "#accordionFlushExample",
+          htmlAttr(
+            "data-bs-parent",
+            StringAsIsCodec
+          ) := "#accordionFlushExample",
           div(
             cls := "accordion-body p-0",
             filterOptions(GROUP_LOCATIONS, _.locations),
@@ -90,15 +98,18 @@ class FilterPanel:
       )
     )
 
-  private def filterOptions(groupName: String, optsFn: CompanyFilter => List[String]) =
+  private def filterOptions(
+      groupName: String,
+      optsFn: CompanyFilter => List[String]
+  ) =
     div(
       cls := "accordion-item",
       h2(
         cls    := "accordion-header",
         idAttr := s"heading$groupName",
         button(
-          cls                                         := "accordion-button collapsed",
-          `type`                                      := "button",
+          cls    := "accordion-button collapsed",
+          `type` := "button",
           htmlAttr("data-bs-toggle", StringAsIsCodec) := "collapse",
           htmlAttr("data-bs-target", StringAsIsCodec) := s"#collapse$groupName",
           htmlAttr("aria-expanded", StringAsIsCodec)  := "false",
@@ -107,15 +118,17 @@ class FilterPanel:
         )
       ),
       div(
-        cls                                          := "accordion-collapse collapse",
-        idAttr                                       := s"collapse$groupName",
+        cls    := "accordion-collapse collapse",
+        idAttr := s"collapse$groupName",
         htmlAttr("aria-labelledby", StringAsIsCodec) := "headingOne",
         htmlAttr("data-bs-parent", StringAsIsCodec)  := "#accordionExample",
         div(
           cls := "accordion-body",
           div(
             cls := "mb-3",
-            children <-- possibleFilter.signal.map(optsFn(_).map(checkbox(groupName, _)))
+            children <-- possibleFilter.signal.map(
+              optsFn(_).map(checkbox(groupName, _))
+            )
           )
         )
       )
@@ -133,7 +146,9 @@ class FilterPanel:
         cls    := "form-check-input",
         `type` := "checkbox",
         idAttr := s"filter-$groupName-$value",
-        onChange.mapToChecked.map(CheckValueEvent(groupName, value, _)) --> checkEvents
+        onChange.mapToChecked.map(
+          CheckValueEvent(groupName, value, _)
+        ) --> checkEvents
       )
     )
 

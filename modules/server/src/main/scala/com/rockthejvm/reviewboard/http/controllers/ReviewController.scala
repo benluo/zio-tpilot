@@ -5,8 +5,10 @@ import com.rockthejvm.reviewboard.services.{JwtService, ReviewService}
 import sttp.tapir.server.ServerEndpoint
 import zio.*
 
-class ReviewController private (reviewService: ReviewService, jwtService: JwtService)
-    extends Controller
+class ReviewController private (
+    reviewService: ReviewService,
+    jwtService: JwtService
+) extends Controller
     with ReviewEndpoints:
   val create: ServerEndpoint[Any, Task] =
     createEndpoint

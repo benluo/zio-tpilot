@@ -4,8 +4,7 @@ import com.raquo.laminar.api.L.{EventBus, EventStream}
 import sttp.tapir.Endpoint
 import zio.*
 
-/** interop-layer for using tapir/ZIO inside laminar components
-  */
+/** interop-layer for using tapir/ZIO inside laminar components */
 object ZJS:
   val useBackend: ZIO.ServiceWithZIOPartiallyApplied[BackendClient] =
     ZIO.serviceWithZIO[BackendClient]
@@ -19,9 +18,9 @@ object ZJS:
       Unsafe.unsafe:
         implicit unsafe =>
           Runtime.default.unsafe.fork:
-              zio
-                .tap(result => ZIO.attempt(eventBus.emit(result)))
-                .provide(BackendClientLive.configuredLayer)
+            zio
+              .tap(result => ZIO.attempt(eventBus.emit(result)))
+              .provide(BackendClientLive.configuredLayer)
 
     /** run the ZIO effect as an async js call
       * @return

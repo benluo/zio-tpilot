@@ -11,4 +11,9 @@ package com.rockthejvm.reviewboard.config
   * @param pass
   *   the session authenticator password
   */
-final case class EmailServiceConfig(host: String, port: Int, user: String, pass: String)
+final case class EmailServiceConfig(
+    host: String,
+    port: Int,
+    user: String,
+    pass: String
+)

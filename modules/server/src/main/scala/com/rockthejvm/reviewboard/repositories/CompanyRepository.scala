@@ -5,8 +5,7 @@ import zio.*
 import io.getquill.*
 import io.getquill.jdbczio.Quill
 
-/** Data access layer for companies
-  */
+/** Data access layer for companies */
 trait CompanyRepository extends Repository[Company]:
   /** Get a company by its slug attribute
     * @param slug
@@ -26,7 +25,8 @@ trait CompanyRepository extends Repository[Company]:
 
   /** Get all unique/distinct attributes from companies in the table
     * @return
-    *   a task containing a CompanyFilter instance populated with the attributes found
+    *   a task containing a CompanyFilter instance populated with the attributes
+    *   found
     */
   def uniqueAttributes: Task[CompanyFilter]
 end CompanyRepository
@@ -35,7 +35,8 @@ end CompanyRepository
   * @param quill
   *   the Quill instance to use to run queries
   */
-class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends CompanyRepository:
+class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase])
+    extends CompanyRepository:
   import quill.*
 
   inline given schema: SchemaMeta[Company] =
@@ -47,9 +48,9 @@ class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends C
 
   override def create(company: Company): Task[Company] =
     run:
-        query[Company]
-          .insertValue(lift(company))
-          .returning(c => c)
+      query[Company]
+        .insertValue(lift(company))
+        .returning(c => c)
 
   override def getById(id: Long): Task[Option[Company]] =
     run(query[Company].filter(_.id == lift(id)))
@@ -64,41 +65,44 @@ class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends C
 
   override def uniqueAttributes: Task[CompanyFilter] =
     for
-      locations  <- run(query[Company].map(_.location).distinct).map(_.flatMap(_.toList))
-      countries  <- run(query[Company].map(_.country).distinct).map(_.flatMap(_.toList))
-      industries <- run(query[Company].map(_.industry).distinct).map(_.flatMap(_.toList))
-      tags       <- run(query[Company].map(_.tags)).map(_.flatten.distinct)
+      locations <- run(query[Company].map(_.location).distinct)
+        .map(_.flatMap(_.toList))
+      countries <- run(query[Company].map(_.country).distinct)
+        .map(_.flatMap(_.toList))
+      industries <- run(query[Company].map(_.industry).distinct)
+        .map(_.flatMap(_.toList))
+      tags <- run(query[Company].map(_.tags)).map(_.flatten.distinct)
     yield CompanyFilter(locations, countries, industries, tags)
 
   override def search(filter: CompanyFilter): Task[List[Company]] =
     if filter.isEmpty then getAll
     else
       run:
-          query[Company]
-            .filter: company =>
-              liftQuery(filter.locations.toSet).contains(company.location) ||
-                liftQuery(filter.countries.toSet).contains(company.country) ||
-                liftQuery(filter.industries.toSet).contains(company.industry) ||
-                sql"${company.tags} && ${lift(filter.tags)}".asCondition
+        query[Company]
+          .filter: company =>
+            liftQuery(filter.locations.toSet).contains(company.location) ||
+              liftQuery(filter.countries.toSet).contains(company.country) ||
+              liftQuery(filter.industries.toSet).contains(company.industry) ||
+              sql"${company.tags} && ${lift(filter.tags)}".asCondition
 
   override def update(id: Long, op: Company => Company): Task[Company] =
     for
       curr <- getById(id).someOrFail(failMsg("update", id))
       updated <- run:
-          query[Company]
-            .filter(_.id == lift(id))
-            .updateValue(lift(op(curr)))
-            .returning(c => c)
+        query[Company]
+          .filter(_.id == lift(id))
+          .updateValue(lift(op(curr)))
+          .returning(c => c)
     yield updated
 
   override def delete(id: Long): Task[Company] =
     for
       _ <- getById(id).someOrFail(failMsg("delete", id))
       deleted <- run:
-          query[Company]
-            .filter(_.id == lift(id))
-            .delete
-            .returning(c => c)
+        query[Company]
+          .filter(_.id == lift(id))
+          .delete
+          .returning(c => c)
     yield deleted
 
   private def failMsg(method: String, id: Long): Throwable =
@@ -108,7 +112,7 @@ end CompanyRepositoryLive
 object CompanyRepositoryLive:
   val layer: ZLayer[Quill.Postgres[SnakeCase], Nothing, CompanyRepositoryLive] =
     ZLayer:
-        ZIO
-          .service[Quill.Postgres[SnakeCase]]
-          .map(new CompanyRepositoryLive(_))
+      ZIO
+        .service[Quill.Postgres[SnakeCase]]
+        .map(new CompanyRepositoryLive(_))
 end CompanyRepositoryLive

@@ -11,25 +11,27 @@ trait RepositorySpec:
 
   def createContainer(): Task[PostgreSQLContainer[Nothing]] =
     ZIO.attempt:
-        val container: PostgreSQLContainer[Nothing] =
-          PostgreSQLContainer("postgres")
-            .withInitScript(initScript)
-        container.start()
-        container
+      val container: PostgreSQLContainer[Nothing] =
+        PostgreSQLContainer("postgres")
+          .withInitScript(initScript)
+      container.start()
+      container
 
   def closeContainer(container: PostgreSQLContainer[Nothing]): UIO[Unit] =
     ZIO.attempt(container.stop()).ignoreLogged
 
-  def createDataSource(container: PostgreSQLContainer[Nothing]): Task[DataSource] =
+  def createDataSource(
+      container: PostgreSQLContainer[Nothing]
+  ): Task[DataSource] =
     ZIO.attempt:
-        val dataSource = new PGSimpleDataSource()
-        dataSource.setUrl(container.getJdbcUrl)
-        dataSource.setUser(container.getUsername)
-        dataSource.setPassword(container.getPassword)
-        dataSource
+      val dataSource = new PGSimpleDataSource()
+      dataSource.setUrl(container.getJdbcUrl)
+      dataSource.setUser(container.getUsername)
+      dataSource.setPassword(container.getPassword)
+      dataSource
 
   val dataSourceLayer: ZLayer[Any with Scope, Throwable, DataSource] = ZLayer:
-      for
-        container  <- ZIO.acquireRelease(createContainer())(closeContainer)
-        dataSource <- createDataSource(container)
-      yield dataSource
+    for
+      container  <- ZIO.acquireRelease(createContainer())(closeContainer)
+      dataSource <- createDataSource(container)
+    yield dataSource

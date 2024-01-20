@@ -8,8 +8,7 @@ import zio.*
 
 import java.time.Instant
 
-/** Service for creating and verifying users via JSON Web Tokens
-  */
+/** Service for creating and verifying users via JSON Web Tokens */
 trait JwtService:
   /** Create a new token for a user
     * @param user
@@ -30,11 +29,13 @@ end JwtService
 
 /** Configured implementation of JwtService
   * @param jwtConfig
-  *   configuration for how to generate tokens (i.e., secret, expiration length, etc.)
+  *   configuration for how to generate tokens (i.e., secret, expiration length,
+  *   etc.)
   * @param clock
   *   instance to handle current time in token verifier
   */
-class JwtServiceLive private (jwtConfig: JwtConfig, clock: java.time.Clock) extends JwtService:
+class JwtServiceLive private (jwtConfig: JwtConfig, clock: java.time.Clock)
+    extends JwtService:
   private val ISSUER         = "rockthejvm.com"
   private val algorithm      = Algorithm.HMAC512(jwtConfig.secret)
   private val CLAIM_USERNAME = "username"
@@ -57,10 +58,10 @@ class JwtServiceLive private (jwtConfig: JwtConfig, clock: java.time.Clock) exte
     for
       decoded <- ZIO.attempt(verifier.verify(token))
       userId <- ZIO.attempt:
-          UserId(
-            decoded.getSubject.toLong,
-            decoded.getClaim(CLAIM_USERNAME).asString()
-          )
+        UserId(
+          decoded.getSubject.toLong,
+          decoded.getClaim(CLAIM_USERNAME).asString()
+        )
     yield userId
 
   private def makeJwt(user: User, now: Instant, expiration: Instant): String =
@@ -76,10 +77,10 @@ end JwtServiceLive
 
 object JwtServiceLive:
   val layer: ZLayer[JwtConfig, Nothing, JwtServiceLive] = ZLayer:
-      for
-        config <- ZIO.service[JwtConfig]
-        clock  <- Clock.javaClock
-      yield JwtServiceLive(config, clock)
+    for
+      config <- ZIO.service[JwtConfig]
+      clock  <- Clock.javaClock
+    yield JwtServiceLive(config, clock)
 
   val configuredLayer: ZLayer[Any, Throwable, JwtServiceLive] =
     Configs.makeLayer[JwtConfig]("rockthejvm.jwt") >>> layer

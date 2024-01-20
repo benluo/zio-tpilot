@@ -36,14 +36,18 @@ object LoginPage extends FormPage[LoginFormState]("Log In"):
   private val submitter = Observer[LoginFormState]: state =>
     if state.hasErrors then stateVar.update(_.copy(showStatus = true))
     else
-      useBackend(_.user.loginEndpoint(LoginRequest(state.email, state.password)))
+      useBackend(
+        _.user.loginEndpoint(LoginRequest(state.email, state.password))
+      )
         .map: userToken =>
           Session.setUserState(userToken)
           stateVar.set(LoginFormState())
           BrowserNavigation.replaceState("/")
         .tapError: e =>
           ZIO.succeed:
-              stateVar.update(_.copy(showStatus = true, upstreamError = Some(e.getMessage)))
+            stateVar.update(
+              _.copy(showStatus = true, upstreamError = Some(e.getMessage))
+            )
         .runJs
 
   override def renderChildren(): List[ReactiveHtmlElement[HTMLElement]] =

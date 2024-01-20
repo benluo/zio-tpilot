@@ -5,8 +5,7 @@ import zio.*
 import io.getquill.*
 import io.getquill.jdbczio.Quill
 
-/** Data access layer for users
-  */
+/** Data access layer for users */
 trait UserRepository extends Repository[User]:
   /** Get user by their email address
     * @param email
@@ -21,7 +20,8 @@ end UserRepository
   * @param quill
   *   the quill instance to run queries with
   */
-class UserRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends UserRepository:
+class UserRepositoryLive private (quill: Quill.Postgres[SnakeCase])
+    extends UserRepository:
   import quill.*
 
   inline given schema: SchemaMeta[User]  = schemaMeta[User]("users")
@@ -38,10 +38,10 @@ class UserRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends User
     for
       curr <- getById(id).someOrFail(new RuntimeException("boo"))
       updated <- run:
-          query[User]
-            .filter(_.id == lift(id))
-            .updateValue(lift(op(curr)))
-            .returning(u => u)
+        query[User]
+          .filter(_.id == lift(id))
+          .updateValue(lift(op(curr)))
+          .returning(u => u)
     yield updated
 
   override def delete(id: Long): Task[User] =
@@ -57,7 +57,7 @@ end UserRepositoryLive
 object UserRepositoryLive:
   val layer: ZLayer[Quill.Postgres[SnakeCase], Nothing, UserRepositoryLive] =
     ZLayer:
-        ZIO
-          .service[Quill.Postgres[SnakeCase]]
-          .map(new UserRepositoryLive(_))
+      ZIO
+        .service[Quill.Postgres[SnakeCase]]
+        .map(new UserRepositoryLive(_))
 end UserRepositoryLive

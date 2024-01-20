@@ -6,15 +6,15 @@ import zio.*
 import io.getquill.*
 import io.getquill.jdbczio.Quill
 
-/** Data access layer for password recovery tokens
-  */
+/** Data access layer for password recovery tokens */
 trait RecoveryTokensRepository:
-  /** Create a new recovery token for an account associated with an email address
+  /** Create a new recovery token for an account associated with an email
+    * address
     * @param email
     *   the email address to associate with the recovery token
     * @return
-    *   a task containing an option of the token created if successful. Will be None if there isn't
-    *   an existing user with the provided email.
+    *   a task containing an option of the token created if successful. Will be
+    *   None if there isn't an existing user with the provided email.
     */
   def getToken(email: String): Task[Option[String]]
 
@@ -53,11 +53,12 @@ class RecoveryTokensRepositoryLive private (
 
   private def makeFreshToken(email: String): Task[String] =
     findToken(email).flatMap:
-        case Some(_) => replaceToken(email)
-        case None    => generateToken(email)
+      case Some(_) => replaceToken(email)
+      case None    => generateToken(email)
 
   private def findToken(email: String): Task[Option[String]] =
-    run(query[RecoveryToken].filter(_.email == lift(email))).map(_.headOption.map(_.token))
+    run(query[RecoveryToken].filter(_.email == lift(email)))
+      .map(_.headOption.map(_.token))
 
   private def randomUppercaseString(len: Int): Task[String] =
     ZIO.succeed(scala.util.Random.alphanumeric.take(len).mkString.toUpperCase)
@@ -66,7 +67,11 @@ class RecoveryTokensRepositoryLive private (
     for
       token <- randomUppercaseString(8)
       entry <- ZIO.attempt(
-        RecoveryToken(email, token, java.lang.System.currentTimeMillis() + tokensConfig.duration)
+        RecoveryToken(
+          email,
+          token,
+          java.lang.System.currentTimeMillis() + tokensConfig.duration
+        )
       )
       _ <- run(query[RecoveryToken].updateValue(lift(entry)))
     yield token
@@ -75,7 +80,11 @@ class RecoveryTokensRepositoryLive private (
     for
       token <- randomUppercaseString(8)
       entry <- ZIO.attempt(
-        RecoveryToken(email, token, java.lang.System.currentTimeMillis() + tokensConfig.duration)
+        RecoveryToken(
+          email,
+          token,
+          java.lang.System.currentTimeMillis() + tokensConfig.duration
+        )
       )
       _ <- run(query[RecoveryToken].insertValue(lift(entry)))
     yield token
@@ -89,20 +98,31 @@ class RecoveryTokensRepositoryLive private (
 
   override def checkToken(email: String, token: String): Task[Boolean] =
     run(
-      query[RecoveryToken].filter(row => row.email == lift(email) && row.token == lift(token))
+      query[RecoveryToken].filter(row =>
+        row.email == lift(email) && row.token == lift(token)
+      )
     ).map(_.nonEmpty)
 end RecoveryTokensRepositoryLive
 
 object RecoveryTokensRepositoryLive:
-  private type R = UserRepository & Quill.Postgres[SnakeCase.type]
-  val layer: ZLayer[R & RecoveryTokensConfig, Nothing, RecoveryTokensRepositoryLive] =
+  val layer: ZLayer[
+    UserRepository & Quill.Postgres[SnakeCase.type] & RecoveryTokensConfig,
+    Nothing,
+    RecoveryTokensRepositoryLive
+  ] =
     ZLayer:
-        for
-          config   <- ZIO.service[RecoveryTokensConfig]
-          quill    <- ZIO.service[Quill.Postgres[SnakeCase.type]]
-          userRepo <- ZIO.service[UserRepository]
-        yield RecoveryTokensRepositoryLive(config, quill, userRepo)
+      for
+        config   <- ZIO.service[RecoveryTokensConfig]
+        quill    <- ZIO.service[Quill.Postgres[SnakeCase.type]]
+        userRepo <- ZIO.service[UserRepository]
+      yield RecoveryTokensRepositoryLive(config, quill, userRepo)
 
-  val configuredLayer: ZLayer[R, Throwable, RecoveryTokensRepository] =
-    Configs.makeLayer[RecoveryTokensConfig]("rockthejvm.recoverytokens") >>> layer
+  val configuredLayer: ZLayer[
+    UserRepository & Quill.Postgres[SnakeCase.type],
+    Throwable,
+    RecoveryTokensRepository
+  ] =
+    Configs.makeLayer[RecoveryTokensConfig](
+      "rockthejvm.recoverytokens"
+    ) >>> layer
 end RecoveryTokensRepositoryLive

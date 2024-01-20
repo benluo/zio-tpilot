@@ -5,8 +5,7 @@ import com.rockthejvm.reviewboard.services.*
 import sttp.tapir.server.ServerEndpoint
 import zio.{Task, URIO}
 
-/** The api of the http layer of the application
-  */
+/** The api of the http layer of the application */
 object HttpApi:
   private type R = ReviewService & CompanyService & UserService & JwtService
 

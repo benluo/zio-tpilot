@@ -15,16 +15,15 @@ import sttp.tapir.server.ziohttp.*
 import zio.*
 import zio.http.Server
 
-/** Entry point for the server application
-  */
+/** Entry point for the server application */
 object Application extends ZIOAppDefault:
   private val serverProgram =
     for
       endpoints <- HttpApi.endpointsZIO
       options <- ZIO.succeed:
-          ZioHttpServerOptions.default.appendInterceptor(CORSInterceptor.default)
+        ZioHttpServerOptions.default.appendInterceptor(CORSInterceptor.default)
       _ <- Server.serve:
-          ZioHttpInterpreter(options).toHttp(endpoints).withDefaultErrorResponse
+        ZioHttpInterpreter(options).toHttp(endpoints).withDefaultErrorResponse
     yield ()
 
   override def run: Task[Unit] =

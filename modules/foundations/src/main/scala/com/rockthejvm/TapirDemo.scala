@@ -43,10 +43,10 @@ object TapirDemo extends ZIOAppDefault:
     .out(jsonBody[Job])
     .serverLogicSuccess[Task](req =>
       ZIO.succeed:
-          val newId  = db.keys.max + 1
-          val newJob = Job(newId, req.title, req.url, req.company)
-          db += (newId -> newJob)
-          newJob
+        val newId  = db.keys.max + 1
+        val newJob = Job(newId, req.title, req.url, req.company)
+        db += (newId -> newJob)
+        newJob
     )
 
   // get by id

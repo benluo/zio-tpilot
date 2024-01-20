@@ -5,8 +5,7 @@ import zio.*
 import io.getquill.*
 import io.getquill.jdbczio.Quill
 
-/** Data access layer for reviews
-  */
+/** Data access layer for reviews */
 trait ReviewRepository extends Repository[Review]:
   /** Get reviews for a given company
     * @param id
@@ -29,7 +28,8 @@ end ReviewRepository
   * @param quill
   *   the quill instance to run queries with
   */
-class ReviewRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends ReviewRepository:
+class ReviewRepositoryLive private (quill: Quill.Postgres[SnakeCase])
+    extends ReviewRepository:
   import quill.*
 
   inline given schema: SchemaMeta[Review] =
@@ -58,20 +58,20 @@ class ReviewRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends Re
     for
       curr <- getById(id).someOrFail(failMsg("update", id))
       updated <- run:
-          query[Review]
-            .filter(_.id == lift(id))
-            .updateValue(lift(op(curr)))
-            .returning(c => c)
+        query[Review]
+          .filter(_.id == lift(id))
+          .updateValue(lift(op(curr)))
+          .returning(c => c)
     yield updated
 
   override def delete(id: Long): Task[Review] =
     for
       _ <- getById(id).someOrFail(failMsg("delete", id))
       deleted <- run:
-          query[Review]
-            .filter(_.id == lift(id))
-            .delete
-            .returning(c => c)
+        query[Review]
+          .filter(_.id == lift(id))
+          .delete
+          .returning(c => c)
     yield deleted
 
   private def failMsg(method: String, id: Long): Throwable =
@@ -81,7 +81,7 @@ end ReviewRepositoryLive
 object ReviewRepositoryLive:
   val layer: ZLayer[Quill.Postgres[SnakeCase], Nothing, ReviewRepositoryLive] =
     ZLayer:
-        ZIO
-          .service[Quill.Postgres[SnakeCase]]
-          .map(new ReviewRepositoryLive(_))
+      ZIO
+        .service[Quill.Postgres[SnakeCase]]
+        .map(new ReviewRepositoryLive(_))
 end ReviewRepositoryLive

@@ -13,12 +13,13 @@ object CompaniesPage:
   private val firstBatch = EventBus[List[Company]]()
   private val companyEvents =
     firstBatch.events.mergeWith:
-        filterPanel.triggerFilters.flatMap: newFilter =>
-            useBackend(_.company.searchEndpoint(newFilter)).toEventStream
+      filterPanel.triggerFilters.flatMap: newFilter =>
+        useBackend(_.company.searchEndpoint(newFilter)).toEventStream
 
   def apply(): ReactiveHtmlElement[HTMLElement] =
     sectionTag(
-      onMountCallback(_ => useBackend(_.company.getAllEndpoint(())).emitTo(firstBatch)),
+      onMountCallback: _ =>
+        useBackend(_.company.getAllEndpoint(())).emitTo(firstBatch),
       cls := "section-1",
       div(
         cls := "container company-list-hero",

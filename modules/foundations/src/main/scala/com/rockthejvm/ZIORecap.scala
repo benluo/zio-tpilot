@@ -28,19 +28,20 @@ object ZIORecap extends ZIOAppDefault:
 
   // error handling
   val anAttempt: Task[Int] = ZIO.attempt:
-      println("trying something")
-      val str: String = null
-      str.length
+    println("trying something")
+    val str: String = null
+    str.length
 
   // catch errors effectfully
   val catchError: UIO[Int | String] =
     anAttempt.catchAll(_ => ZIO.succeed(s"Returning some different value"))
   val catchSelective: Task[Int | String] = anAttempt.catchSome:
-      case e: RuntimeException => ZIO.succeed(s"ignoring runtime exception: $e")
-      case _                   => ZIO.succeed("ignoring everything else")
+    case e: RuntimeException => ZIO.succeed(s"ignoring runtime exception: $e")
+    case _                   => ZIO.succeed("ignoring everything else")
 
   // fibers
-  val delayedValue: UIO[Int] = ZIO.sleep(1.second) *> Random.nextIntBetween(0, 100)
+  val delayedValue: UIO[Int] =
+    ZIO.sleep(1.second) *> Random.nextIntBetween(0, 100)
 
   val aPair: UIO[(Int, Int)] = for
     vA <- delayedValue
@@ -55,35 +56,48 @@ object ZIORecap extends ZIOAppDefault:
   yield (vA, vB) // this takes 1 second (if you have multiple threads)
 
   val interruptedFiber: UIO[Unit] = for
-    fib <- delayedValue.onInterrupt(ZIO.succeed(println("I'm interrupted"))).fork
-    _   <- ZIO.sleep(500.millis) *> ZIO.succeed(println("cancelling fiber")) *> fib.interrupt
-    _   <- fib.join
+    fib <- delayedValue
+      .onInterrupt(ZIO.succeed(println("I'm interrupted")))
+      .fork
+    _ <- ZIO.sleep(500.millis) *> ZIO.succeed(
+      println("cancelling fiber")
+    ) *> fib.interrupt
+    _ <- fib.join
   yield ()
 
   val ignoredInterruption: UIO[Unit] = for
     fib <- ZIO
       .uninterruptible:
-        delayedValue.map(println).onInterrupt(ZIO.succeed(println("I'm interrupted")))
+        delayedValue
+          .map(println)
+          .onInterrupt(ZIO.succeed(println("I'm interrupted")))
       .fork
-    _ <- ZIO.sleep(500.millis) *> ZIO.succeed(println("cancelling fiber")) *> fib.interrupt
+    _ <- ZIO.sleep(500.millis) *> ZIO.succeed(
+      println("cancelling fiber")
+    ) *> fib.interrupt
     _ <- fib.join
   yield ()
 
   val aPairPar2: UIO[(Int, Int)] = delayedValue zipPar delayedValue
-  val random10: UIO[Seq[Int]]    = ZIO.collectAllPar((1 to 10).map(_ => delayedValue)) // "traverse"
+  val random10: UIO[Seq[Int]] =
+    ZIO.collectAllPar((1 to 10).map(_ => delayedValue)) // "traverse"
 
   // dependencies
 
   case class User(name: String, email: String)
 
-  class UserSubscription(emailService: EmailService, userDatabase: UserDatabase):
+  class UserSubscription(
+      emailService: EmailService,
+      userDatabase: UserDatabase
+  ):
     def subscribeUser(user: User): Task[Unit] = for
       _ <- emailService.email(user)
       _ <- userDatabase.insert(user)
       _ <- ZIO.succeed(s"subscribed $user")
     yield ()
   object UserSubscription:
-    val live: ZLayer[EmailService with UserDatabase, Nothing, UserSubscription] =
+    val live
+        : ZLayer[EmailService with UserDatabase, Nothing, UserSubscription] =
       ZLayer.fromFunction((emailS, userD) => UserSubscription(emailS, userD))
 
   class EmailService:

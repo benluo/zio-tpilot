@@ -13,16 +13,16 @@ class UserController private (userService: UserService, jwtService: JwtService)
     with UserEndpoints:
   val create: ServerEndpoint[Any, Task] =
     createUserEndpoint.serverLogic: req =>
-        userService
-          .registerUser(req.email, req.password)
-          .map(user => UserResponse(user.email))
-          .either
+      userService
+        .registerUser(req.email, req.password)
+        .map(user => UserResponse(user.email))
+        .either
 
   val login: ServerEndpoint[Any, Task] =
     loginEndpoint.serverLogic: req =>
-        userService
-          .generateToken(req.email, req.password)
-          .either
+      userService
+        .generateToken(req.email, req.password)
+        .either
 
   val changePassword: ServerEndpoint[Any, Task] =
     updatePasswordEndpoint

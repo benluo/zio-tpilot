@@ -5,8 +5,7 @@ import com.rockthejvm.reviewboard.http.requests.CreateCompanyRequest
 import com.rockthejvm.reviewboard.repositories.CompanyRepository
 import zio.*
 
-/** Business logic for company listings
-  */
+/** Business logic for company listings */
 trait CompanyService:
   /** Create a company from a CreateCompanyRequest
     * @param req
@@ -57,7 +56,8 @@ end CompanyService
   * @param repo
   *   the repository instance to access data with
   */
-class CompanyServiceLive private (repo: CompanyRepository) extends CompanyService:
+class CompanyServiceLive private (repo: CompanyRepository)
+    extends CompanyService:
   override def create(req: CreateCompanyRequest): Task[Company] =
     repo.create(req.toCompany(-1L))
 
@@ -80,5 +80,5 @@ end CompanyServiceLive
 object CompanyServiceLive:
   val layer: ZLayer[CompanyRepository, Nothing, CompanyServiceLive] =
     ZLayer:
-        ZIO.service[CompanyRepository].map(new CompanyServiceLive(_))
+      ZIO.service[CompanyRepository].map(new CompanyServiceLive(_))
 end CompanyServiceLive

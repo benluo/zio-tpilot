@@ -5,10 +5,15 @@ import zio.*
 
 import java.util.Properties
 import javax.mail.internet.MimeMessage
-import javax.mail.{Authenticator, Message, PasswordAuthentication, Session, Transport}
+import javax.mail.{
+  Authenticator,
+  Message,
+  PasswordAuthentication,
+  Session,
+  Transport
+}
 
-/** Service for sending emails
-  */
+/** Service for sending emails */
 trait EmailService:
   /** Send an email from a configured source
     * @param to
@@ -53,12 +58,22 @@ end EmailService
   * @param config
   *   the configuration for how to send emails
   */
-class EmailServiceLive private (config: EmailServiceConfig) extends EmailService:
-  override def sendEmail(to: String, subject: String, content: String): Task[Unit] =
+class EmailServiceLive private (config: EmailServiceConfig)
+    extends EmailService:
+  override def sendEmail(
+      to: String,
+      subject: String,
+      content: String
+  ): Task[Unit] =
     for
       props   <- propsResource
       session <- createSession(props)
-      message <- createMessage(session)("daniel@rockthejvm.com", to, subject, content)
+      message <- createMessage(session)(
+        "daniel@rockthejvm.com",
+        to,
+        subject,
+        content
+      )
     yield Transport.send(message)
 
   private val propsResource: Task[Properties] =
@@ -72,16 +87,21 @@ class EmailServiceLive private (config: EmailServiceConfig) extends EmailService
 
   private def createSession(props: Properties): Task[Session] =
     ZIO.attempt:
-        Session.getInstance(
-          props,
-          new Authenticator:
-            override def getPasswordAuthentication: PasswordAuthentication =
-              PasswordAuthentication(config.user, config.pass)
-        )
+      Session.getInstance(
+        props,
+        new Authenticator:
+          override def getPasswordAuthentication: PasswordAuthentication =
+            PasswordAuthentication(config.user, config.pass)
+      )
 
   private def createMessage(
       session: Session
-  )(from: String, to: String, subject: String, content: String): Task[MimeMessage] =
+  )(
+      from: String,
+      to: String,
+      subject: String,
+      content: String
+  ): Task[MimeMessage] =
     val message = MimeMessage(session)
     message.setFrom(from)
     message.setRecipients(Message.RecipientType.TO, to)
@@ -93,9 +113,9 @@ end EmailServiceLive
 object EmailServiceLive:
   val layer: ZLayer[EmailServiceConfig, Nothing, EmailService] =
     ZLayer:
-        ZIO
-          .service[EmailServiceConfig]
-          .map(EmailServiceLive(_))
+      ZIO
+        .service[EmailServiceConfig]
+        .map(EmailServiceLive(_))
 
   val configuredLayer: ZLayer[Any, Throwable, EmailService] =
     Configs.makeLayer[EmailServiceConfig]("rockthejvm.email") >>> layer

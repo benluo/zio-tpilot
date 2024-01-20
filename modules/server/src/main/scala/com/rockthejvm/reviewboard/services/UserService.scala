@@ -1,15 +1,17 @@
 package com.rockthejvm.reviewboard.services
 
 import com.rockthejvm.reviewboard.domain.data.{User, UserToken}
-import com.rockthejvm.reviewboard.repositories.{RecoveryTokensRepository, UserRepository}
+import com.rockthejvm.reviewboard.repositories.{
+  RecoveryTokensRepository,
+  UserRepository
+}
 import zio.*
 
 import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
-/** Service for handling user creation, authentication, etc.
-  */
+/** Service for handling user creation, authentication, etc. */
 trait UserService:
   /** Register a new user
     * @param email
@@ -27,7 +29,8 @@ trait UserService:
     * @param password
     *   the password to log in with
     * @return
-    *   a task containing a boolean indicating if the email and password are correct
+    *   a task containing a boolean indicating if the email and password are
+    *   correct
     */
   def verifyPassword(email: String, password: String): Task[Boolean]
 
@@ -51,7 +54,11 @@ trait UserService:
     * @return
     *   a task containing the updated user
     */
-  def updatePassword(email: String, oldPassword: String, newPassword: String): Task[User]
+  def updatePassword(
+      email: String,
+      oldPassword: String,
+      newPassword: String
+  ): Task[User]
 
   /** Delete a user's account
     * @param email
@@ -81,7 +88,11 @@ trait UserService:
     * @return
     *   a task containing a boolean indicating if the recovery was successful
     */
-  def recoverFromToken(email: String, token: String, newPassword: String): Task[Boolean]
+  def recoverFromToken(
+      email: String,
+      token: String,
+      newPassword: String
+  ): Task[Boolean]
 end UserService
 
 /** Implementation of UserService using other services and repo layers
@@ -101,7 +112,9 @@ class UserServiceLive private (
     tokenRepo: RecoveryTokensRepository
 ) extends UserService:
   override def registerUser(email: String, password: String): Task[User] =
-    userRepo.create(User(-1L, email, UserServiceLive.Hasher.generateHash(password)))
+    userRepo.create(
+      User(-1L, email, UserServiceLive.Hasher.generateHash(password))
+    )
 
   override def verifyPassword(email: String, password: String): Task[Boolean] =
     verifyUser(email, password).isSuccess
@@ -112,11 +125,18 @@ class UserServiceLive private (
       token <- jwtService.createToken(user)
     yield token
 
-  override def updatePassword(email: String, oldPassword: String, newPassword: String): Task[User] =
+  override def updatePassword(
+      email: String,
+      oldPassword: String,
+      newPassword: String
+  ): Task[User] =
     import UserServiceLive.Hasher.generateHash
     for
-      user    <- verifyUser(email, oldPassword)
-      updated <- userRepo.update(user.id, _.copy(hashedPassword = generateHash(newPassword)))
+      user <- verifyUser(email, oldPassword)
+      updated <- userRepo.update(
+        user.id,
+        _.copy(hashedPassword = generateHash(newPassword))
+      )
     yield updated
 
   override def deleteUser(email: String, password: String): Task[User] =
@@ -127,8 +147,12 @@ class UserServiceLive private (
 
   private def verifyUser(email: String, password: String): Task[User] =
     for
-      user     <- userRepo.getByEmail(email).someOrFail(new RuntimeException("bad email"))
-      verified <- ZIO.attempt(UserServiceLive.Hasher.validateHash(password, user.hashedPassword))
+      user <- userRepo
+        .getByEmail(email)
+        .someOrFail(new RuntimeException("bad email"))
+      verified <- ZIO.attempt(
+        UserServiceLive.Hasher.validateHash(password, user.hashedPassword)
+      )
       verifiedUser <- ZIO
         .attempt(user)
         .when(verified)
@@ -142,10 +166,16 @@ class UserServiceLive private (
         case Some(token) => emailService.sendPasswordRecovery(email, token)
         case None        => ZIO.unit
 
-  override def recoverFromToken(email: String, token: String, newPassword: String): Task[Boolean] =
+  override def recoverFromToken(
+      email: String,
+      token: String,
+      newPassword: String
+  ): Task[Boolean] =
     import UserServiceLive.Hasher.generateHash
     for
-      user  <- userRepo.getByEmail(email).someOrFail(new RuntimeException("bad email"))
+      user <- userRepo
+        .getByEmail(email)
+        .someOrFail(new RuntimeException("bad email"))
       valid <- tokenRepo.checkToken(email, token)
       result <- userRepo
         .update(user.id, _.copy(hashedPassword = generateHash(newPassword)))
@@ -155,21 +185,23 @@ class UserServiceLive private (
 end UserServiceLive
 
 object UserServiceLive:
-  private type R = UserRepository & RecoveryTokensRepository & EmailService & JwtService
+  private type R = UserRepository & RecoveryTokensRepository & EmailService &
+    JwtService
   val layer: ZLayer[R, Nothing, UserServiceLive] = ZLayer:
-      for
-        jwtService   <- ZIO.service[JwtService]
-        emailService <- ZIO.service[EmailService]
-        userRepo     <- ZIO.service[UserRepository]
-        tokenRepo    <- ZIO.service[RecoveryTokensRepository]
-      yield UserServiceLive(jwtService, emailService, userRepo, tokenRepo)
+    for
+      jwtService   <- ZIO.service[JwtService]
+      emailService <- ZIO.service[EmailService]
+      userRepo     <- ZIO.service[UserRepository]
+      tokenRepo    <- ZIO.service[RecoveryTokensRepository]
+    yield UserServiceLive(jwtService, emailService, userRepo, tokenRepo)
 
   private object Hasher:
     def generateHash(str: String): String =
       val rng  = new SecureRandom()
       val salt = Array.ofDim[Byte](SALT_BYTE_SIZE)
       rng.nextBytes(salt)
-      val hashBytes = pbkdf2(str.toCharArray, salt, N_ITERATIONS, HASH_BYTE_SIZE)
+      val hashBytes =
+        pbkdf2(str.toCharArray, salt, N_ITERATIONS, HASH_BYTE_SIZE)
       s"$N_ITERATIONS:${toHex(salt)}:${toHex(hashBytes)}"
 
     def validateHash(test: String, hash: String): Boolean =
@@ -184,9 +216,14 @@ object UserServiceLive:
     private val N_ITERATIONS: Int        = 1000
     private val SALT_BYTE_SIZE: Int      = 24
     private val HASH_BYTE_SIZE: Int      = 24
-    private val skf                      = SecretKeyFactory.getInstance(PBKDF2_ALGORITHM)
+    private val skf = SecretKeyFactory.getInstance(PBKDF2_ALGORITHM)
 
-    private def pbkdf2(msg: Array[Char], salt: Array[Byte], i: Int, nBytes: Int): Array[Byte] =
+    private def pbkdf2(
+        msg: Array[Char],
+        salt: Array[Byte],
+        i: Int,
+        nBytes: Int
+    ): Array[Byte] =
       val keySpec = PBEKeySpec(msg, salt, i, nBytes * 8)
       skf.generateSecret(keySpec).getEncoded
 

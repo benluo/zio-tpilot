@@ -7,8 +7,10 @@ import sttp.tapir.server.ServerEndpoint
 import zio.*
 
 /** a controller that implements handling logic for company endpoints */
-class CompanyController private (service: CompanyService, jwtService: JwtService)
-    extends Controller
+class CompanyController private (
+    service: CompanyService,
+    jwtService: JwtService
+) extends Controller
     with CompanyEndpoints:
   val create: ServerEndpoint[Any, Task] =
     createEndpoint
@@ -26,11 +28,11 @@ class CompanyController private (service: CompanyService, jwtService: JwtService
 
   val getById: ServerEndpoint[Any, Task] =
     getByIdEndpoint.serverLogic: id =>
-        ZIO
-          .succeed(id.toLongOption)
-          .flatMap:
-            case Some(value) => service.getById(value).either
-            case None        => service.getBySlug(id).either
+      ZIO
+        .succeed(id.toLongOption)
+        .flatMap:
+          case Some(value) => service.getById(value).either
+          case None        => service.getBySlug(id).either
 
   override val routes: List[ServerEndpoint[Any, Task]] =
     List(create, getAll, allFilters, search, getById)
