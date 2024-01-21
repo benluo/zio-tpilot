@@ -4,6 +4,7 @@ import com.rockthejvm.reviewboard.pages.*
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import com.rockthejvm.reviewboard.pages.companies.CompaniesPage
+import com.rockthejvm.reviewboard.pages.forgot.ForgotPage
 import com.rockthejvm.reviewboard.pages.login.LoginPage
 import com.rockthejvm.reviewboard.pages.signup.SignUpPage
 import com.rockthejvm.reviewboard.pages.logout.LogoutPage
@@ -22,6 +23,7 @@ object Router:
           path("signup")(SignUpPage()),
           path("profile")(ProfilePage()),
           path("logout")(LogoutPage()),
+          path("forgot")(ForgotPage()),
           noneMatched(NotFoundPage())
         )
       )

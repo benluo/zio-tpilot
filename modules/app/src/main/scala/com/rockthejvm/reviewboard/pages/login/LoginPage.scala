@@ -3,6 +3,7 @@ package com.rockthejvm.reviewboard.pages.login
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import com.rockthejvm.reviewboard.common.Constants
+import com.rockthejvm.reviewboard.components.Anchors
 import com.rockthejvm.reviewboard.core.*
 import com.rockthejvm.reviewboard.core.ZJS.*
 import com.rockthejvm.reviewboard.http.requests.LoginRequest
@@ -72,5 +73,6 @@ object LoginPage extends FormPage[LoginFormState]("Log In"):
         tpe := "button",
         "Log In",
         onClick.preventDefault.mapTo(stateVar.now()) --> submitter
-      )
+      ),
+      Anchors.navLink("Forgot password?", "/forgot", "auth-link")
     )
