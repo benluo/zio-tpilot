@@ -1,6 +1,7 @@
 package com.rockthejvm.reviewboard.repositories
 
 import com.rockthejvm.reviewboard.domain.data.{Company, CompanyFilter}
+import com.rockthejvm.reviewboard.domain.errors.NotFoundError
 import zio.*
 import io.getquill.*
 import io.getquill.jdbczio.Quill
@@ -106,7 +107,7 @@ class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase])
     yield deleted
 
   private def failMsg(method: String, id: Long): Throwable =
-    new RuntimeException(s"could not $method missing id: $id")
+    NotFoundError(s"could not $method missing id: $id")
 end CompanyRepositoryLive
 
 object CompanyRepositoryLive:

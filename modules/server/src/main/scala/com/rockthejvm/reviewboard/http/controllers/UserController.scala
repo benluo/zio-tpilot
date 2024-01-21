@@ -1,6 +1,7 @@
 package com.rockthejvm.reviewboard.http.controllers
 
 import com.rockthejvm.reviewboard.domain.data.UserId
+import com.rockthejvm.reviewboard.domain.errors.UnauthorizedError
 import com.rockthejvm.reviewboard.http.endpoints.UserEndpoints
 import com.rockthejvm.reviewboard.http.responses.UserResponse
 import com.rockthejvm.reviewboard.services.{JwtService, UserService}
@@ -56,7 +57,7 @@ class UserController private (userService: UserService, jwtService: JwtService)
       .serverLogic: req =>
         userService
           .recoverFromToken(req.email, req.token, req.newPassword)
-          .filterOrFail(b => b)(new RuntimeException("unauthorized"))
+          .filterOrFail(b => b)(UnauthorizedError("Invalid email/token combination."))
           .unit
           .either
 

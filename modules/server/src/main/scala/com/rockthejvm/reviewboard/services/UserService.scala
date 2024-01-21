@@ -1,10 +1,8 @@
 package com.rockthejvm.reviewboard.services
 
 import com.rockthejvm.reviewboard.domain.data.{User, UserToken}
-import com.rockthejvm.reviewboard.repositories.{
-  RecoveryTokensRepository,
-  UserRepository
-}
+import com.rockthejvm.reviewboard.domain.errors.UnauthorizedError
+import com.rockthejvm.reviewboard.repositories.{RecoveryTokensRepository, UserRepository}
 import zio.*
 
 import java.security.SecureRandom
@@ -149,14 +147,14 @@ class UserServiceLive private (
     for
       user <- userRepo
         .getByEmail(email)
-        .someOrFail(new RuntimeException("bad email"))
+        .someOrFail(UnauthorizedError("Invalid email or password."))
       verified <- ZIO.attempt(
         UserServiceLive.Hasher.validateHash(password, user.hashedPassword)
       )
       verifiedUser <- ZIO
         .attempt(user)
         .when(verified)
-        .someOrFail(new RuntimeException("bad password"))
+        .someOrFail(UnauthorizedError("Invalid email or password."))
     yield verifiedUser
 
   override def sendRecoveryToken(email: String): Task[Unit] =
@@ -175,7 +173,7 @@ class UserServiceLive private (
     for
       user <- userRepo
         .getByEmail(email)
-        .someOrFail(new RuntimeException("bad email"))
+        .someOrFail(UnauthorizedError("Invalid email or token."))
       valid <- tokenRepo.checkToken(email, token)
       result <- userRepo
         .update(user.id, _.copy(hashedPassword = generateHash(newPassword)))

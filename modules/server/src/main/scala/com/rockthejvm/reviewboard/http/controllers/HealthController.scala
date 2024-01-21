@@ -1,5 +1,6 @@
 package com.rockthejvm.reviewboard.http.controllers
 
+import com.rockthejvm.reviewboard.domain.errors.ApplicationError
 import com.rockthejvm.reviewboard.http.endpoints.HealthEndpoints
 import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
@@ -12,7 +13,7 @@ class HealthController private extends Controller with HealthEndpoints:
 
   val error: ServerEndpoint[Any, Task] =
     errorEndpoint
-      .serverLogic[Task](_ => ZIO.fail(new RuntimeException("Boom!")).either)
+      .serverLogic[Task](_ => ZIO.fail(ApplicationError("Boom!")).either)
 
   override val routes: List[ServerEndpoint[Any, Task]] = List(health, error)
 

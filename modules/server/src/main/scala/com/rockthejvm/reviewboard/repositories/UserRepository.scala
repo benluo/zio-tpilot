@@ -1,6 +1,7 @@
 package com.rockthejvm.reviewboard.repositories
 
 import com.rockthejvm.reviewboard.domain.data.User
+import com.rockthejvm.reviewboard.domain.errors.NotFoundError
 import zio.*
 import io.getquill.*
 import io.getquill.jdbczio.Quill
@@ -36,7 +37,7 @@ class UserRepositoryLive private (quill: Quill.Postgres[SnakeCase])
 
   override def update(id: Long, op: User => User): Task[User] =
     for
-      curr <- getById(id).someOrFail(new RuntimeException("boo"))
+      curr <- getById(id).someOrFail(NotFoundError(s"User $id does not exist"))
       updated <- run:
         query[User]
           .filter(_.id == lift(id))
