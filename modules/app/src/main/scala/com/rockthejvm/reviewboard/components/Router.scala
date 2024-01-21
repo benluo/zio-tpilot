@@ -9,6 +9,7 @@ import com.rockthejvm.reviewboard.pages.login.LoginPage
 import com.rockthejvm.reviewboard.pages.signup.SignUpPage
 import com.rockthejvm.reviewboard.pages.logout.LogoutPage
 import com.rockthejvm.reviewboard.pages.profile.ProfilePage
+import com.rockthejvm.reviewboard.pages.recover.RecoverPage
 import frontroute.*
 import org.scalajs.dom.HTMLElement
 
@@ -24,6 +25,7 @@ object Router:
           path("profile")(ProfilePage()),
           path("logout")(LogoutPage()),
           path("forgot")(ForgotPage()),
+          path("recover")(RecoverPage()),
           noneMatched(NotFoundPage())
         )
       )

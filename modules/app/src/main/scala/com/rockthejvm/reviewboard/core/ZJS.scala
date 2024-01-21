@@ -27,10 +27,9 @@ object ZJS:
       * @return
       *   the future/promise of the result
       */
-    def runJs: CancelableFuture[A] =
+    def runJs(): Unit =
       Unsafe.unsafe: unsafe ?=>
-        Runtime.default.unsafe
-          .runToFuture(zio.provide(BackendClientLive.configuredLayer))
+        Runtime.default.unsafe.fork(zio.provide(BackendClientLive.configuredLayer))
 
     def toEventStream: EventStream[A] =
       val bus = EventBus[A]()

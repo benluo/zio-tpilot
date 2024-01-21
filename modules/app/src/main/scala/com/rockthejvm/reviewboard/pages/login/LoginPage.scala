@@ -32,7 +32,7 @@ case class LoginFormState(
 end LoginFormState
 
 object LoginPage extends FormPage[LoginFormState]("Log In"):
-  override val stateVar = Var(LoginFormState())
+  override def basicState: LoginFormState = LoginFormState()
 
   private val submitter = Observer[LoginFormState]: state =>
     if state.hasErrors then stateVar.update(_.copy(showStatus = true))
@@ -49,7 +49,7 @@ object LoginPage extends FormPage[LoginFormState]("Log In"):
             stateVar.update(
               _.copy(showStatus = true, upstreamError = Some(e.getMessage))
             )
-        .runJs
+        .runJs()
 
   override def renderChildren(): List[ReactiveHtmlElement[HTMLElement]] =
     List(

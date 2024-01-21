@@ -97,11 +97,16 @@ class RecoveryTokensRepositoryLive private (
         case Some(_) => makeFreshToken(email).map(Some(_))
 
   override def checkToken(email: String, token: String): Task[Boolean] =
-    run(
-      query[RecoveryToken].filter(row =>
-        row.email == lift(email) && row.token == lift(token)
-      )
-    ).map(_.nonEmpty)
+    for
+      now <- Clock.instant
+      checkValid <- run(
+        query[RecoveryToken].filter(row =>
+          row.email == lift(email) &&
+            row.token == lift(token) &&
+            row.expiration > lift(now.toEpochMilli)
+        )
+      ).map(_.nonEmpty)
+    yield checkValid
 end RecoveryTokensRepositoryLive
 
 object RecoveryTokensRepositoryLive:

@@ -28,7 +28,7 @@ case class ChangePasswordState(
 end ChangePasswordState
 
 object ProfilePage extends FormPage[ChangePasswordState]("Profile"):
-  override val stateVar: Var[ChangePasswordState] = Var(ChangePasswordState())
+  override def basicState: ChangePasswordState = ChangePasswordState()
 
   private def submitter(email: String) = Observer[ChangePasswordState]: state =>
     if state.hasErrors then stateVar.update(_.copy(showStatus = true))
@@ -53,7 +53,7 @@ object ProfilePage extends FormPage[ChangePasswordState]("Profile"):
                 upstreamStatus = Some(Left(e.getMessage))
               )
             )
-        .runJs
+        .runJs()
 
   override def renderChildren(): List[ReactiveHtmlElement[HTMLElement]] =
     Session.getUserState

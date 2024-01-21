@@ -3,11 +3,9 @@ package com.rockthejvm.reviewboard.pages.forgot
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import com.rockthejvm.reviewboard.common.Constants
+import com.rockthejvm.reviewboard.components.Anchors
 import com.rockthejvm.reviewboard.core.ZJS.*
-import com.rockthejvm.reviewboard.http.requests.{
-  ForgotPasswordRequest,
-  RecoverPasswordRequest
-}
+import com.rockthejvm.reviewboard.http.requests.{ForgotPasswordRequest, RecoverPasswordRequest}
 import com.rockthejvm.reviewboard.pages.signup.SignUpPage.renderInput
 import com.rockthejvm.reviewboard.pages.{FormPage, FormState}
 import org.scalajs.dom.*
@@ -28,7 +26,7 @@ case class ForgotState(
 end ForgotState
 
 object ForgotPage extends FormPage[ForgotState]("Forgot Password"):
-  override val stateVar: Var[ForgotState] = Var(ForgotState())
+  override def basicState: ForgotState = ForgotState()
 
   private val submitter = Observer[ForgotState]: state =>
     if state.hasErrors then stateVar.update(_.copy(showStatus = true))
@@ -53,7 +51,7 @@ object ForgotPage extends FormPage[ForgotState]("Forgot Password"):
                   upstreamStatus = Some(Left(e.getMessage))
                 )
               )
-        .runJs
+        .runJs()
 
   override def renderChildren(): List[ReactiveHtmlElement[HTMLElement]] =
     List(
@@ -69,6 +67,11 @@ object ForgotPage extends FormPage[ForgotState]("Forgot Password"):
         tpe := "button",
         "Recover Password",
         onClick.preventDefault.mapTo(stateVar.now()) --> submitter
+      ),
+      Anchors.navLink(
+        "Have a password recovery token?",
+        "/recover",
+        "auth-link"
       )
     )
 end ForgotPage

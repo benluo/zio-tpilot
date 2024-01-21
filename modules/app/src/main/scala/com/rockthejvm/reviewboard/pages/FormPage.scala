@@ -41,13 +41,15 @@ end FormState
   */
 abstract class FormPage[S <: FormState](title: String):
   /** The current (reactive) form state */
-  val stateVar: Var[S]
+  final val stateVar: Var[S] = Var(basicState)
+  def basicState: S
 
   /** The children/form input elements to render */
   def renderChildren(): List[ReactiveHtmlElement[HTMLElement]]
 
-  def apply(): ReactiveHtmlElement[HTMLElement] =
+  final def apply(): ReactiveHtmlElement[HTMLElement] =
     div(
+      onUnmountCallback(_ => stateVar.set(basicState)),
       cls := "row",
       div(
         cls := "col-md-5 p-0",

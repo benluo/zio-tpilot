@@ -12,7 +12,7 @@ class FilterPanel:
   private def fetchFilter(): Unit =
     useBackend(_.company.allFiltersEndpoint(()))
       .map(possibleFilter.set)
-      .runJs
+      .runJs()
 
   private case class CheckValueEvent(
       groupName: String,
