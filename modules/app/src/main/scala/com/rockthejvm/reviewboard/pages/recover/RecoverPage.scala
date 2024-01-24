@@ -80,8 +80,8 @@ object RecoverPage extends FormPage[RecoverState]("Recover"):
         "text",
         true,
         "Your recovery token",
-        (s, p) =>
-          s.copy(recoveryToken = p, showStatus = false, upstreamStatus = None)
+        (s, t) =>
+          s.copy(recoveryToken = t, showStatus = false, upstreamStatus = None)
       ),
       renderInput(
         "New Password",

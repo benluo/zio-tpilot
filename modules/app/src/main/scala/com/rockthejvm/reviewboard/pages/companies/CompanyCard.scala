@@ -7,6 +7,9 @@ import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import org.scalajs.dom.HTMLElement
 
+/** A company listing on the companies page. Provides info at a glance and a
+  * link to go to the company page
+  */
 object CompanyCard:
   def apply(company: Company): ReactiveHtmlElement[HTMLElement] =
     div(

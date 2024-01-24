@@ -31,6 +31,7 @@ case class LoginFormState(
   override val maybeSuccess: Option[String] = None
 end LoginFormState
 
+/** The login page (part of the authentication flow) */
 object LoginPage extends FormPage[LoginFormState]("Log In"):
   override def basicState: LoginFormState = LoginFormState()
 

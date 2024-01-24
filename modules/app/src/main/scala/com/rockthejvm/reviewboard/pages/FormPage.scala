@@ -42,6 +42,8 @@ end FormState
 abstract class FormPage[S <: FormState](title: String):
   /** The current (reactive) form state */
   final val stateVar: Var[S] = Var(basicState)
+  
+  /** The initial/empty form state */
   def basicState: S
 
   /** The children/form input elements to render */
